@@ -115,6 +115,9 @@ export const testCustomProvider = async (
 ): Promise<TestApiKeyResult> => {
   const payload = {
     ...formValues,
+    // Required by backend TestLLMRequest model
+    api_key_changed: true,
+    custom_config_changed: true,
   };
   return await submitLlmTestRequest(
     payload,
