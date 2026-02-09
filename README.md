@@ -1,108 +1,100 @@
 <a name="readme-top"></a>
 
-<h2 align="center">
-    <a href="https://www.onyx.app/?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme"> <img width="50%" src="https://github.com/onyx-dot-app/onyx/blob/logo/OnyxLogoCropped.jpg?raw=true" /></a>
-</h2>
+# Tee-Agent
 
-<p align="center">Open Source AI Platform</p>
+> Fork of [onyx-dot-app/onyx](https://github.com/onyx-dot-app/onyx) at [pdtkts/onyx](https://github.com/pdtkts/onyx).
+> Auto-syncs upstream `main` every 6 hours via GitHub Actions.
 
-<p align="center">
-    <a href="https://discord.gg/TDJ59cGV2X" target="_blank">
-        <img src="https://img.shields.io/badge/discord-join-blue.svg?logo=discord&logoColor=white" alt="Discord" />
-    </a>
-    <a href="https://docs.onyx.app/?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme" target="_blank">
-        <img src="https://img.shields.io/badge/docs-view-blue" alt="Documentation" />
-    </a>
-    <a href="https://www.onyx.app/?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme" target="_blank">
-        <img src="https://img.shields.io/website?url=https://www.onyx.app&up_message=visit&up_color=blue" alt="Documentation" />
-    </a>
-    <a href="https://github.com/onyx-dot-app/onyx/blob/main/LICENSE" target="_blank">
-        <img src="https://img.shields.io/static/v1?label=license&message=MIT&color=blue" alt="License" />
-    </a>
-</p>
+**Tee-Agent** builds on Onyx -- a feature-rich, self-hostable AI Chat Platform with RAG, Agents, Deep Research, MCP, Web Search, 40+ connectors, and more. Works with any LLM (OpenAI, Anthropic, Gemini, Ollama, vLLM).
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/12516" target="_blank">
-    <img src="https://trendshift.io/api/badge/repositories/12516" alt="onyx-dot-app/onyx | Trendshift" style="width: 250px; height: 55px;" />
-  </a>
-</p>
+## Fork-Specific Changes
 
+- Custom `docker-compose.infra.yml` for local dev (Postgres, Redis, Vespa generic, MinIO)
+- Upstream sync workflow (`.github/workflows/sync-upstream.yml`)
+- `chonkie` pinned to 1.0.8 (upstream 1.0.10 unavailable)
+- Vespa image switched to `vespa-generic-intel-x86_64` for broader CPU support
+- Local development docs in `docs/local-dev-guide.md`
 
-**[Onyx](https://www.onyx.app/?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme)** is a feature-rich, self-hostable Chat UI that works with any LLM. It is easy to deploy and can run in a completely airgapped environment.
+## Quick Start (Local Dev)
 
-Onyx comes loaded with advanced features like Agents, Web Search, RAG, MCP, Deep Research, Connectors to 40+ knowledge sources, and more.
+**Prerequisites:** Python 3.11+, Node.js 20+, Docker
 
-> [!TIP]
-> Run Onyx with one command (or see deployment section below):
-> ```
-> curl -fsSL https://raw.githubusercontent.com/onyx-dot-app/onyx/main/deployment/docker_compose/install.sh > install.sh && chmod +x install.sh && ./install.sh
-> ```
+```bash
+# 1. Start infrastructure
+cd deployment/docker_compose
+docker compose -f docker-compose.infra.yml up -d
 
-****
+# 2. Start backend
+cd backend
+set -a && source .env && set +a
+../.venv/Scripts/python.exe -m uvicorn onyx.main:app --host 0.0.0.0 --port 8080 --reload
 
-![Onyx Chat Silent Demo](https://github.com/onyx-dot-app/onyx/releases/download/v0.21.1/OnyxChatSilentDemo.gif)
+# 3. Start frontend
+cd web
+npm run dev
+```
 
+- Backend API: http://localhost:8080/docs
+- Frontend: http://localhost:3000 (or 3001 if 3000 occupied)
+- MinIO Console: http://localhost:9001
 
+See [docs/local-dev-guide.md](docs/local-dev-guide.md) for full setup details.
 
-## ⭐ Features
-- **🤖 Custom Agents:** Build AI Agents with unique instructions, knowledge and actions.
-- **🌍 Web Search:** Browse the web with Google PSE, Exa, and Serper as well as an in-house scraper or Firecrawl.
-- **🔍 RAG:** Best in class hybrid-search + knowledge graph for uploaded files and ingested documents from connectors. 
-- **🔄 Connectors:** Pull knowledge, metadata, and access information from over 40 applications.
-- **🔬 Deep Research:** Get in depth answers with an agentic multi-step search.
-- **▶️ Actions & MCP:** Give AI Agents the ability to interact with external systems.
-- **💻 Code Interpreter:** Execute code to analyze data, render graphs and create files.
-- **🎨 Image Generation:** Generate images based on user prompts.
-- **👥 Collaboration:** Chat sharing, feedback gathering, user management, usage analytics, and more.
+## Documentation
 
-Onyx works with all LLMs (like OpenAI, Anthropic, Gemini, etc.) and self-hosted LLMs (like Ollama, vLLM, etc.)
+| Document | Description |
+|----------|-------------|
+| [Project Overview & PDR](docs/project-overview-pdr.md) | Vision, goals, scope, requirements |
+| [System Architecture](docs/system-architecture.md) | Component diagram, data flow, service interactions |
+| [Codebase Summary](docs/codebase-summary.md) | Directory structure, module descriptions |
+| [Code Standards](docs/code-standards.md) | Python + TypeScript conventions |
+| [Deployment Guide](docs/deployment-guide.md) | Docker, Kubernetes, cloud deployment |
+| [Project Roadmap](docs/project-roadmap.md) | Fork roadmap, phases, milestones |
+| [Local Dev Guide](docs/local-dev-guide.md) | Local development setup |
 
-To learn more about the features, check out our [documentation](https://docs.onyx.app/welcome?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme)!
+## Features
 
+- **Custom Agents:** Build AI Agents with unique instructions, knowledge and actions
+- **Web Search:** Google PSE, Exa, Serper + in-house scraper or Firecrawl
+- **RAG:** Hybrid search + knowledge graph for uploaded files and connector documents
+- **Connectors:** 40+ data source connectors (GitHub, Confluence, Slack, Jira, Google Drive, etc.)
+- **Deep Research:** Agentic multi-step search for in-depth answers
+- **Actions & MCP:** External system interaction via tools
+- **Code Interpreter:** Execute code, analyze data, render graphs
+- **Image Generation:** Generate images from prompts
+- **Collaboration:** Chat sharing, feedback, user management, analytics
 
+Works with all LLMs (OpenAI, Anthropic, Gemini) and self-hosted (Ollama, vLLM).
 
-## 🚀 Deployment
-Onyx supports deployments in Docker, Kubernetes, Terraform, along with guides for major cloud providers.
+## Deployment
 
-See guides below:
-- [Docker](https://docs.onyx.app/deployment/local/docker?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme) or [Quickstart](https://docs.onyx.app/deployment/getting_started/quickstart?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme) (best for most users)
-- [Kubernetes](https://docs.onyx.app/deployment/local/kubernetes?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme) (best for large teams)
-- [Terraform](https://docs.onyx.app/deployment/local/terraform?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme) (best for teams already using Terraform)
-- Cloud specific guides (best if specifically using [AWS EKS](https://docs.onyx.app/deployment/cloud/aws/eks?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme), [Azure VMs](https://docs.onyx.app/deployment/cloud/azure?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme), etc.)
+| Method | Best For | Guide |
+|--------|----------|-------|
+| Docker Compose | Most users | [Quickstart](https://docs.onyx.app/deployment/getting_started/quickstart) |
+| Kubernetes/Helm | Large teams | [K8s Guide](https://docs.onyx.app/deployment/local/kubernetes) |
+| Terraform | IaC teams | [Terraform Guide](https://docs.onyx.app/deployment/local/terraform) |
+| AWS ECS Fargate | AWS users | [AWS Guide](https://docs.onyx.app/deployment/cloud/aws/eks) |
 
-> [!TIP]  
-> **To try Onyx for free without deploying, check out [Onyx Cloud](https://cloud.onyx.app/signup?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme)**.
+## Tech Stack
 
+| Layer | Technology |
+|-------|------------|
+| Backend | Python 3.11, FastAPI 0.128, SQLAlchemy 2.0, Celery 5.5, litellm |
+| Frontend | Next.js 16, React 19, TypeScript 5.9, Tailwind CSS 3.4 |
+| Database | PostgreSQL 15.2, Redis 7.4 |
+| Search | Vespa 8.609 (primary), OpenSearch 3.4 (optional) |
+| Storage | MinIO / S3 / Postgres file store |
+| Desktop | Tauri v2 |
 
+## Licensing
 
-## 🔍 Other Notable Benefits
-Onyx is built for teams of all sizes, from individual users to the largest global enterprises.
+- **Community Edition (CE):** MIT License
+- **Enterprise Edition (EE):** Additional features for large organizations
 
-- **Enterprise Search**: far more than simple RAG, Onyx has custom indexing and retrieval that remains performant and accurate for scales of up to tens of millions of documents.
-- **Security**: SSO (OIDC/SAML/OAuth2), RBAC, encryption of credentials, etc.
-- **Management UI**: different user roles such as basic, curator, and admin.
-- **Document Permissioning**: mirrors user access from external apps for RAG use cases.
+## Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [contributing_guides/](contributing_guides/).
 
+## Community
 
-## 🚧 Roadmap
-To see ongoing and upcoming projects, check out our [roadmap](https://github.com/orgs/onyx-dot-app/projects/2)!
-
-
-
-## 📚 Licensing
-There are two editions of Onyx:
-
-- Onyx Community Edition (CE) is available freely under the MIT license.
-- Onyx Enterprise Edition (EE) includes extra features that are primarily useful for larger organizations.
-For feature details, check out [our website](https://www.onyx.app/pricing?utm_source=onyx_repo&utm_medium=github&utm_campaign=readme).
-
-
-
-## 👪 Community
-Join our open source community on **[Discord](https://discord.gg/TDJ59cGV2X)**!
-
-
-
-## 💡 Contributing
-Looking to contribute? Please check out the [Contribution Guide](CONTRIBUTING.md) for more details.
+Join [Discord](https://discord.gg/TDJ59cGV2X) for discussions and support.
