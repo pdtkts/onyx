@@ -1,6 +1,6 @@
 # Project Roadmap -- Tee-Agent Fork
 
-Last updated: 2026-02-09
+Last updated: 2026-02-10
 
 ## Phase 0: Foundation [COMPLETE]
 
@@ -30,6 +30,7 @@ Last updated: 2026-02-09
 | Set up fork-specific CI (lint, test, build) | Pending | Medium |
 | Document all required env vars | Done | Medium |
 | Test Celery worker startup | Pending | Medium |
+| Set up features layer (`backend/features/`, `web/src/app/features/`) | Done | High |
 | Validate auth flows (basic auth) | Pending | Medium |
 
 ## Phase 2: Customization [PLANNED]
@@ -65,9 +66,9 @@ Last updated: 2026-02-09
 | Task | Status | Priority |
 |------|--------|----------|
 | Custom knowledge graph extensions | Future | Medium |
-| Advanced analytics dashboard | Future | Low |
+| ~~Advanced analytics dashboard~~ | N/A | EE-only, out of scope |
 | Custom MCP tool development | Future | Medium |
-| Multi-tenant setup | Future | Low |
+| ~~Multi-tenant setup~~ | N/A | EE-only, out of scope |
 | Integration testing suite | Future | Medium |
 
 ## Key Milestones
@@ -94,6 +95,7 @@ Last updated: 2026-02-09
 | Dependency conflicts | Medium | Medium | Lock files, version constraints |
 | Vespa resource requirements | Low | Medium | Generic image, resource limits |
 | Redis/Celery stability | Low | High | Health checks, restart policies |
+| Upstream renames imports used by features layer | Low | Medium | Run tests after sync, only import from stable APIs |
 
 ## Decision Log
 
@@ -105,3 +107,5 @@ Last updated: 2026-02-09
 | 2026-01 | Create infra-only compose | Lighter local dev, run backend natively |
 | 2026-01 | AUTH_TYPE=basic | `disabled` no longer supported upstream |
 | 2026-02 | DISABLE_MODEL_SERVER=true | Avoid port 9000 conflict with MinIO |
+| 2026-02 | MIT-only: do not use EE code | EE dirs kept for upstream sync; `onyx.main:app` entry point, `is_ee_version()=False`. Analytics, RBAC, multi-tenant, SAML SSO are out of scope |
+| 2026-02 | Features layer at `backend/features/` | Mirrors `ee/` pattern; wraps `get_application()`, mounts custom routers. Avoids upstream conflicts by only importing, never modifying upstream files |

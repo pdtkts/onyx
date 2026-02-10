@@ -13,6 +13,7 @@
 - Use kebab-case for filenames: `user-auth-handler.py`, `chat-message-list.tsx`
 - Organize by feature/domain, not by type
 - One concept per module, high cohesion, low coupling
+- **Do NOT import from `ee/` directories** -- this fork uses MIT-only code. Custom features go in `backend/features/` (backend) and `web/src/app/features/` (frontend)
 
 ## Python (Backend)
 
@@ -257,6 +258,49 @@ try {
   toast.error("Something went wrong. Please try again.");
 }
 ```
+
+## Features Layer (Fork-Specific Code)
+
+### Golden Rules -- Upstream Conflict Avoidance
+
+| Rule | Details |
+|------|---------|
+| Only CREATE in `backend/features/` and `web/src/app/features/` | Upstream does not have these directories |
+| Only IMPORT from upstream, never modify upstream code | Prevents merge conflicts on sync |
+| NEVER modify `backend/onyx/`, `backend/ee/`, `web/src/app/` (outside `features/`) | These sync with upstream every 6h |
+
+### Backend Features Pattern (`backend/features/`)
+
+Entry point: `features.onyx.main:app` (wraps `onyx.main.get_application()`)
+
+```python
+# features/onyx/main.py pattern:
+from onyx.main import get_application
+from onyx.auth.users import current_user  # import, never modify
+
+app = get_application()
+app.include_router(my_router)
+check_router_auth(app)  # MUST call after adding routers
+```
+
+**Router conventions:**
+- All routers mount under `FEATURES_API_PREFIX` (default: `/api/features/`)
+- Every endpoint MUST include `_: User | None = Depends(current_user)` for auth
+- Config in `features/onyx/configs/app_configs.py`
+
+### Frontend Features Pattern (`web/src/app/features/`)
+
+- `layout.tsx` -- Auth-gated layout (redirects to `/auth/login` if unauthenticated)
+- All custom pages go under this route
+- Import shared components from `@/components/`, never duplicate
+
+### Conflict Risk & Mitigation
+
+| Risk | Likelihood | Mitigation |
+|------|-----------|------------|
+| Upstream renames `current_user` / `get_application` | Low | Run tests after every upstream sync |
+| Upstream creates `features/` directory | Very Low | Rename to `custom/` or `tee/` |
+| Upstream changes FastAPI middleware order | Low | Pin wrapper to `get_application()` output |
 
 ## Testing
 

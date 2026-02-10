@@ -5,7 +5,11 @@
 ```
 tee-agent/
 ├── backend/              # Python backend (FastAPI + Celery)
+│   ├── onyx/             #   MIT base application
+│   ├── features/         #   Fork-specific features layer (entry point)
+│   └── ee/               #   Enterprise (kept for sync, not loaded)
 ├── web/                  # Next.js frontend
+│   └── src/app/features/ #   Fork-specific frontend routes
 ├── deployment/           # Docker, Kubernetes, Terraform, AWS configs
 ├── desktop/              # Tauri v2 desktop app
 ├── extensions/chrome/    # Chrome extension (Manifest V3)
@@ -14,6 +18,7 @@ tee-agent/
 ├── examples/             # API examples + widget demo
 ├── contributing_guides/  # Setup guides, contribution process
 ├── docs/                 # Project documentation (fork-specific)
+├── dev-start.sh          # One-command local dev launcher
 └── .github/workflows/    # 23+ CI/CD workflows
 ```
 
@@ -45,7 +50,8 @@ tee-agent/
 |-----------|---------|
 | `alembic/` | DB migrations (307 versions) |
 | `alembic_tenants/` | Multi-tenant migrations (6 versions) |
-| `ee/onyx/` | Enterprise Edition overlay |
+| `features/onyx/` | Custom features layer -- wraps base app, adds fork-specific routers (entry point: `features.onyx.main:app`) |
+| `ee/onyx/` | Enterprise Edition overlay (present for upstream sync, **not loaded at runtime** -- EE disabled) |
 | `model_server/` | Separate ML model server (FastAPI, port 9000) |
 | `shared_configs/` | Shared configuration modules |
 | `tests/` | Backend test suite |
@@ -70,6 +76,7 @@ Organized by domain:
 | `settings/` | System settings |
 | `query_and_chat/` | Chat and query endpoints |
 | `openai_assistants_api/` | OpenAI-compatible API |
+| **`features/onyx/server/`** | **Fork-specific routers (health, etc.) -- mounted at `/api/features/*`** |
 
 ### Celery Workers (8 Types)
 
@@ -111,7 +118,8 @@ Organized by domain:
 | `app/` | Main chat interface (agents, settings, projects) |
 | `auth/` | Auth pages (login, signup, OAuth, SAML, OIDC) |
 | `craft/` | Agent/workflow builder |
-| `ee/` | Enterprise routes |
+| `ee/` | Enterprise routes (present for upstream sync, **not used** -- EE disabled) |
+| `features/` | Custom features layer (auth-gated layout, fork-specific pages) |
 | `mcp/` | MCP management pages |
 
 ### State Management
@@ -152,7 +160,7 @@ Organized by domain:
 | `docker-compose.prod-cloud.yml` | Cloud production |
 | `docker-compose.infra.yml` | Infrastructure only (fork-specific) |
 | `docker-compose.opensearch.yml` | OpenSearch variant |
-| `docker-compose.multitenant-dev.yml` | Multi-tenant development |
+| `docker-compose.multitenant-dev.yml` | Multi-tenant development (EE-only, not used in this fork) |
 | `docker-compose.resources.yml` | Resource limits |
 
 ### Docker Services (Full Stack)

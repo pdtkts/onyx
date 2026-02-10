@@ -54,7 +54,11 @@ Browser -> Next.js -> /api/* catch-all -> FastAPI backend (port 8080)
 
 ### 2. Backend (FastAPI)
 
-**Entry point:** `backend/onyx/main.py`
+**Entry point:** `backend/features/onyx/main.py` (custom features layer wrapping MIT base)
+
+> **Features Layer:** The fork uses a custom wrapper at `features.onyx.main:app` that calls `onyx.main.get_application()` (MIT base) and then mounts fork-specific routers under `/api/features/*`. All custom routes go through `check_router_auth()` for safety. The `FEATURES_API_PREFIX` env var controls the prefix (default: `features`).
+
+> **EE Code Isolation:** The backend uses `fetch_versioned_implementation()` to dynamically load modules. When `global_version.is_ee_version()` returns `False` (our case -- `ENABLE_PAID_ENTERPRISE_EDITION_FEATURES` is not set), all calls fall back to MIT modules under `backend/onyx/`. EE code in `backend/ee/` is never imported or executed.
 
 ```
 FastAPI App
@@ -79,6 +83,35 @@ FastAPI App
 | Tools | `/tool/`, `/mcp/` |
 | Auth | `/auth/`, `/auth/login`, `/auth/logout` |
 | Projects | `/projects/` |
+| Features (custom) | `/features/health` (auth required) |
+
+### 2.1 Features Layer (Fork-Specific Extension)
+
+The features layer (`backend/features/`) mirrors the `ee/` pattern but for MIT-only custom code.
+
+```
+backend/features/
+├── __init__.py
+├── onyx/
+│   ├── __init__.py
+│   ├── main.py              # Wraps onyx.main.get_application(), mounts custom routers
+│   ├── configs/
+│   │   └── app_configs.py   # FEATURES_API_PREFIX env var
+│   └── server/
+│       └── health/
+│           └── api.py       # GET /api/features/health (auth required)
+
+web/src/app/features/
+├── layout.tsx    # Auth-gated layout
+└── page.tsx      # Placeholder page
+```
+
+**Upstream Conflict Avoidance (Golden Rules):**
+- Only CREATE files in `backend/features/` and `web/src/app/features/` -- upstream does not have these
+- Only IMPORT from upstream packages (`onyx.main`, `onyx.auth.users`), never modify upstream files
+- Never modify `backend/onyx/`, `backend/ee/`, or `web/src/app/` (outside `features/`)
+- Celery workers remain unchanged -- still use `onyx.background.celery.apps.*`
+- Run tests after every upstream sync to catch import breakages
 
 ### 3. Database (PostgreSQL)
 
@@ -95,7 +128,7 @@ Key table groups:
 | Personas | `persona`, `prompt`, `tool`, `persona__tool` | Agent configuration |
 | LLM | `llm_provider`, `embedding_provider` | Model configuration |
 | Settings | `key_value_store`, `system_settings` | System configuration |
-| EE | `user_group`, `saml_config`, `usage_report` | Enterprise features |
+| EE | `user_group`, `saml_config`, `usage_report` | Enterprise features (tables exist from migrations but are **unused** in MIT mode) |
 
 **Migration count:** 307 main + 6 tenant versions.
 
@@ -182,13 +215,13 @@ User Request
 
 ### Auth Types
 
-| Type | Flow |
-|------|------|
-| BASIC | Email/password -> session cookie |
-| GOOGLE_OAUTH | Google OAuth2 -> session cookie |
-| OIDC | OpenID Connect -> session cookie |
-| SAML | SAML 2.0 SSO -> session cookie |
-| CLOUD | Cloud-managed auth |
+| Type | Flow | Availability |
+|------|------|-------------|
+| BASIC | Email/password -> session cookie | MIT |
+| GOOGLE_OAUTH | Google OAuth2 -> session cookie | MIT |
+| OIDC | OpenID Connect -> session cookie | **EE-only** |
+| SAML | SAML 2.0 SSO -> session cookie | **EE-only** |
+| CLOUD | Cloud-managed auth | **EE-only** |
 
 ### Session Backends
 

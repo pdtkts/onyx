@@ -56,7 +56,7 @@ docker compose ps
 | `docker-compose.prod-cloud.yml` | Cloud production (managed DB) |
 | `docker-compose.infra.yml` | Infrastructure only (local dev) |
 | `docker-compose.opensearch.yml` | OpenSearch instead of Vespa |
-| `docker-compose.multitenant-dev.yml` | Multi-tenant development |
+| `docker-compose.multitenant-dev.yml` | Multi-tenant development (**EE-only**, not used in this fork) |
 | `docker-compose.resources.yml` | With resource limits |
 
 ### Production with SSL
@@ -196,9 +196,11 @@ terraform apply
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AUTH_TYPE` | `basic` | Auth type: basic, google_oauth, oidc, saml, cloud |
+| `AUTH_TYPE` | `basic` | Auth type: `basic`, `google_oauth` (MIT). `oidc`, `saml`, `cloud` are **EE-only** |
+| `ENABLE_PAID_ENTERPRISE_EDITION_FEATURES` | `false` | Must remain unset/false for MIT-only operation |
 | `WEB_DOMAIN` | `http://localhost:3000` | Frontend URL (for redirects) |
 | `API_PREFIX` | `` | API path prefix |
+| `FEATURES_API_PREFIX` | `features` | Prefix for fork-specific feature routers (mounted at `/api/{prefix}/*`) |
 | `POSTGRES_HOST` | `localhost` | PostgreSQL host |
 | `POSTGRES_PORT` | `5432` | PostgreSQL port |
 | `POSTGRES_USER` | `postgres` | PostgreSQL user |
@@ -298,6 +300,7 @@ terraform apply
 | Service | Endpoint |
 |---------|----------|
 | Backend | `GET /health` |
+| Features layer | `GET /api/features/health` (requires auth) |
 | Vespa | `GET http://vespa:19071/state/v1/health` |
 | PostgreSQL | `pg_isready` |
 | Redis | `redis-cli ping` |

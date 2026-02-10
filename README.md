@@ -13,6 +13,8 @@
 - Upstream sync workflow (`.github/workflows/sync-upstream.yml`)
 - `chonkie` pinned to 1.0.8 (upstream 1.0.10 unavailable)
 - Vespa image switched to `vespa-generic-intel-x86_64` for broader CPU support
+- **Features layer** (`backend/features/`, `web/src/app/features/`) -- fork-specific extensions wrapping MIT base, entry point: `features.onyx.main:app`
+- `dev-start.sh` -- one-command launcher for backend + frontend + Celery
 - Local development docs in `docs/local-dev-guide.md`
 
 ## Quick Start (Local Dev)
@@ -24,10 +26,10 @@
 cd deployment/docker_compose
 docker compose -f docker-compose.infra.yml up -d
 
-# 2. Start backend
+# 2. Start backend (uses features layer entry point)
 cd backend
 set -a && source .env && set +a
-../.venv/Scripts/python.exe -m uvicorn onyx.main:app --host 0.0.0.0 --port 8080 --reload
+../.venv/Scripts/python.exe -m uvicorn features.onyx.main:app --host 0.0.0.0 --port 8080 --reload
 
 # 3. Start frontend
 cd web
@@ -88,8 +90,11 @@ Works with all LLMs (OpenAI, Anthropic, Gemini) and self-hosted (Ollama, vLLM).
 
 ## Licensing
 
-- **Community Edition (CE):** MIT License
-- **Enterprise Edition (EE):** Additional features for large organizations
+This fork runs **MIT-licensed (Community Edition) code only**.
+
+- Code outside `ee/` directories: **MIT License**
+- `backend/ee/` and `web/src/app/ee/` directories exist in the repo for upstream sync compatibility but are **NOT loaded or used at runtime** (EE features are disabled by default; `ENABLE_PAID_ENTERPRISE_EDITION_FEATURES` is not set)
+- Entry point: `features.onyx.main:app` (wraps MIT `onyx.main.get_application()`), not `ee.onyx.main:app`
 
 ## Contributing
 

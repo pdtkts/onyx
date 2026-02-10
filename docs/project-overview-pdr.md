@@ -7,7 +7,7 @@
 | Name | Tee-Agent |
 | Base | Fork of [onyx-dot-app/onyx](https://github.com/onyx-dot-app/onyx) |
 | Repository | [pdtkts/onyx](https://github.com/pdtkts/onyx) |
-| License | MIT (CE) + Enterprise Edition (EE) |
+| License | MIT (Community Edition only) |
 | Stack | Python (FastAPI) + Next.js + PostgreSQL + Vespa |
 
 ## Vision
@@ -35,14 +35,15 @@ Maintain a customized fork of Onyx that auto-syncs upstream changes while enabli
 
 ### In Scope
 
-- Full Onyx platform (CE + EE features)
+- Onyx platform (MIT/CE features only; EE code present for upstream sync but not used)
 - 40+ data source connectors
 - Chat, RAG, Deep Research, Agents, MCP
 - Multi-LLM support (OpenAI, Anthropic, Gemini, Ollama, vLLM)
 - Web search, code interpreter, image generation
-- SSO (OIDC/SAML/OAuth), RBAC, document permissioning
+- Auth: basic, google_oauth (SAML/OIDC/Cloud are EE-only, not available)
 - Docker, Kubernetes, Terraform deployment
 - Desktop app (Tauri), Chrome extension, embeddable widget
+- **Features layer** (`backend/features/`, `web/src/app/features/`) -- fork-specific extensions that wrap the MIT base app without modifying upstream code
 
 ### Out of Scope (Current Phase)
 
@@ -76,7 +77,7 @@ Maintain a customized fork of Onyx that auto-syncs upstream changes while enabli
 - OAuth flow support for connector authentication
 
 ### FR-5: User Management & Auth
-- 5 auth types: BASIC, GOOGLE_OAUTH, OIDC, SAML, CLOUD
+- MIT auth types: `basic`, `google_oauth` (OIDC, SAML, Cloud are EE-only)
 - 3 session backends: Redis, Postgres, JWT
 - 5 user roles: ADMIN > GLOBAL_CURATOR > CURATOR > BASIC > LIMITED
 - API key authentication for programmatic access
@@ -89,13 +90,10 @@ Maintain a customized fork of Onyx that auto-syncs upstream changes while enabli
 - Analytics and usage reporting
 - System settings and configuration
 
-### FR-7: Enterprise Features (EE)
-- Analytics dashboard
-- Billing integration
-- RBAC user groups
-- Multi-tenant support
-- Standard answers
-- Usage export
+### ~~FR-7: Enterprise Features (EE)~~ -- OUT OF SCOPE
+> EE code exists in `backend/ee/` and `web/src/app/ee/` for upstream sync compatibility but is **not loaded at runtime**. `global_version.is_ee_version()` returns `False`; all `fetch_versioned_implementation()` calls fall back to MIT modules. The following features are **not available** in this fork:
+- Analytics dashboard, Billing integration, RBAC user groups
+- Multi-tenant support, Standard answers, Usage export, SAML SSO, Query history
 
 ## Non-Functional Requirements
 
