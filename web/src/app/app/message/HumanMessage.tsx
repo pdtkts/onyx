@@ -11,6 +11,8 @@ import CopyIconButton from "@/refresh-components/buttons/CopyIconButton";
 import Button from "@/refresh-components/buttons/Button";
 import { SvgEdit } from "@opal/icons";
 import FileDisplay from "./FileDisplay";
+import { getHumanMessageWrapper } from "@/app/features/chat-registry";
+import "@/app/features/modules/collapsible-message/register";
 
 interface MessageEditingProps {
   content: string;
@@ -193,10 +195,10 @@ const HumanMessage = React.memo(function HumanMessage({
           />
         ) : typeof content === "string" ? (
           <>
-            <div className="md:max-w-[25rem] flex basis-[100%] md:basis-auto justify-end md:order-1">
+            <div className="md:max-w-[35rem] flex basis-[100%] md:basis-auto justify-end md:order-1">
               <div
                 className={
-                  "max-w-[25rem] whitespace-break-spaces rounded-t-16 rounded-bl-16 bg-background-tint-02 py-2 px-3"
+                  "max-w-[35rem] whitespace-break-spaces rounded-t-16 rounded-bl-16 bg-background-tint-02 py-2 px-3"
                 }
                 onCopy={(e) => {
                   const selection = window.getSelection();
@@ -210,9 +212,11 @@ const HumanMessage = React.memo(function HumanMessage({
                   }
                 }}
               >
-                <Text as="p" mainContentBody>
-                  {content}
-                </Text>
+                {(() => {
+                  const Wrapper = getHumanMessageWrapper();
+                  const textNode = <Text as="p" mainContentBody>{content}</Text>;
+                  return Wrapper ? <Wrapper text={content}>{textNode}</Wrapper> : textNode;
+                })()}
               </div>
             </div>
             {onEdit && !isEditing && (!files || files.length === 0) && (
