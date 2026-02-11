@@ -1,3 +1,5 @@
+import { getFeatureProviderGroups } from "@/app/features/image-gen-registry";
+
 export interface ImageProvider {
   image_provider_id: string; // Static unique key for UI-DB mapping
   model_name: string; // Actual model name for LLM API
@@ -91,4 +93,6 @@ export const IMAGE_PROVIDER_GROUPS: ProviderGroup[] = [
       },
     ],
   },
+  // Feature module providers (fork-specific, auto-registered)
+  ...getFeatureProviderGroups(),
 ];

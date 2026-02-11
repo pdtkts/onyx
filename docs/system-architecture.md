@@ -54,7 +54,9 @@ Browser -> Next.js -> /api/* catch-all -> FastAPI backend (port 8080)
 
 ### 2. Backend (FastAPI)
 
-**Entry point:** `backend/onyx/main.py`
+**Entry points:**
+- Upstream: `backend/onyx/main.py`
+- Fork feature wrapper: `backend/features/onyx/main.py`
 
 ```
 FastAPI App
@@ -79,6 +81,24 @@ FastAPI App
 | Tools | `/tool/`, `/mcp/` |
 | Auth | `/auth/`, `/auth/login`, `/auth/logout` |
 | Projects | `/projects/` |
+
+#### Fork Feature Injection Pattern (Image Generation)
+
+The fork adds a runtime extension layer for custom image providers without editing upstream backend source files.
+
+```
+features/onyx/main.py
+  -> monkey-patch onyx.image_gen.factory._get_provider_cls
+  -> add factory._CUSTOM_PROVIDERS map
+  -> call features.onyx.modules.register_all()
+  -> each module register() injects provider class
+```
+
+Gemini Web implementation details:
+- Provider key: `gemini_web`
+- Provider class: Gemini Web image provider class in `features/onyx/modules/gemini_web_image_gen/provider.py`
+- Credentials source: `custom_config.secure_1psid` + `custom_config.secure_1psidts`
+- Dependency: `gemini_webapi>=1.0.0,<2.0.0`
 
 ### 3. Database (PostgreSQL)
 
@@ -240,6 +260,36 @@ litellm Abstraction Layer
 - Supports multiple providers simultaneously
 - Per-persona model assignment
 - Token counting and cost tracking
+
+## Image Generation Extension Flow (Gemini Web)
+
+### Frontend registration path
+
+```
+image-gen-registry.ts
+  -> import feature modules
+  -> register provider groups + forms
+  -> upstream constants.ts merges groups
+  -> getImageGenForm.tsx resolves form by provider_name
+```
+
+### Backend execution path
+
+```
+Admin saves provider config
+  -> provider_name=gemini_web
+  -> cookies stored in encrypted custom_config
+Image generation request
+  -> patched image_gen factory resolves gemini_web provider
+  -> provider validates cookies
+  -> GeminiWebClientManager runs async call on dedicated loop thread
+  -> image bytes downloaded
+  -> response returned as litellm-compatible ImageResponse (b64_json)
+```
+
+Constraints:
+- Gemini Web currently returns one image per request; `n` is ignored by provider.
+- Cookie auth uses `__Secure-1PSID` and `__Secure-1PSIDTS`.
 
 ## Data Flow: Chat Message
 

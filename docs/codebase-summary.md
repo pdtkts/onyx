@@ -48,7 +48,18 @@ tee-agent/
 | `ee/onyx/` | Enterprise Edition overlay |
 | `model_server/` | Separate ML model server (FastAPI, port 9000) |
 | `shared_configs/` | Shared configuration modules |
+| `features/` | Fork extension layer (runtime patches + modular feature providers) |
 | `tests/` | Backend test suite |
+
+### Fork Feature Layer (`backend/features/`)
+
+| Path | Purpose |
+|------|---------|
+| `features/onyx/main.py` | Monkey-patches upstream image generation factory at runtime; registers custom providers without modifying upstream Python files |
+| `features/onyx/modules/__init__.py` | Auto-discovers module subpackages and calls each module registration hook when present |
+| `features/onyx/modules/gemini_web_image_gen/provider.py` | Gemini Web image provider implementation using cookie-based auth |
+| `features/onyx/modules/gemini_web_image_gen/client_manager.py` | Thread-safe singleton Gemini client manager with dedicated asyncio loop and sync bridge |
+| `features/requirements.txt` | Feature-only Python dependencies (`gemini_webapi>=1.0.0,<2.0.0`) |
 
 ### API Routers (`backend/onyx/server/`)
 
@@ -113,6 +124,16 @@ Organized by domain:
 | `craft/` | Agent/workflow builder |
 | `ee/` | Enterprise routes |
 | `mcp/` | MCP management pages |
+
+### Frontend Feature Modules (`web/src/app/features/`)
+
+| Path | Purpose |
+|------|---------|
+| `features/image-gen-registry.ts` | Registry to merge fork image providers/forms into upstream admin UI |
+| `features/modules/gemini-web-image-gen/index.ts` | Registers Gemini Web provider metadata (`provider_name: gemini_web`) |
+| `features/modules/gemini-web-image-gen/GeminiWebImageGenForm.tsx` | Admin form for `__Secure-1PSID` and `__Secure-1PSIDTS` cookie inputs |
+| `admin/configuration/image-generation/constants.ts` | Imports registry and spreads feature provider groups into `IMAGE_PROVIDER_GROUPS` |
+| `admin/configuration/image-generation/forms/getImageGenForm.tsx` | Fallback path resolves feature forms before defaulting to OpenAI form |
 
 ### State Management
 
