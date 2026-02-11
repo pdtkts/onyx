@@ -80,4 +80,4 @@ docker compose -f docker-compose.infra.yml down
 | `AUTH_TYPE=disabled` not supported         | Dùng `AUTH_TYPE=basic`                              |
 | FE lock file error                         | Xóa `web/.next/dev/lock` rồi chạy lại               |
 
-cd backend && ../.venv/Scripts/uvicorn.exe onyx.main:app --factory --host 0.0.0.0 --port 8080 --reload --env-file .env
+cd backend && ../.venv/Scripts/uvicorn.exe features.onyx.main:app --host 0.0.0.0 --port 8080 --reload --env-file .env

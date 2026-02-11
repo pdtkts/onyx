@@ -33,6 +33,8 @@ jira_test_env
 settings.json
 
 # others
+repomix-output.xml
+nul
 /deployment/data/nginx/app.conf
 /deployment/data/nginx/mcp.conf.inc
 /deployment/data/nginx/mcp_upstream.conf.inc

@@ -1,6 +1,6 @@
 # Project Roadmap -- Tee-Agent Fork
 
-Last updated: 2026-02-09
+Last updated: 2026-02-11
 
 ## Phase 0: Foundation [COMPLETE]
 
@@ -41,7 +41,8 @@ Last updated: 2026-02-09
 | Custom agent/persona configurations | Planned | High |
 | Custom connector development | Planned | Medium |
 | UI/UX customizations | Planned | Medium |
-| Custom tool integrations | Planned | Medium |
+| Custom tool integrations | In Progress | Medium |
+| Gemini Web image generation provider (cookie auth) | Done | High |
 | Fork-specific branding | Planned | Low |
 
 ## Phase 3: Production Readiness [PLANNED]
@@ -76,7 +77,7 @@ Last updated: 2026-02-09
 |-----------|--------|--------|
 | Fork established + auto-sync | 2026-01 | Done |
 | Local dev fully functional | 2026-02 | In Progress |
-| First custom feature deployed | TBD | Planned |
+| First custom feature deployed | 2026-02 | Done |
 | Production deployment ready | TBD | Planned |
 
 ## Upstream Sync Strategy
@@ -105,3 +106,4 @@ Last updated: 2026-02-09
 | 2026-01 | Create infra-only compose | Lighter local dev, run backend natively |
 | 2026-01 | AUTH_TYPE=basic | `disabled` no longer supported upstream |
 | 2026-02 | DISABLE_MODEL_SERVER=true | Avoid port 9000 conflict with MinIO |
+| 2026-02 | Gemini Web image provider via runtime injection | Add cookie-based image generation without upstream Python file modifications |
