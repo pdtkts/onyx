@@ -1,4 +1,4 @@
 # Feature-specific dependencies (separate from upstream pyproject.toml)
 # Install: pip install -r features/requirements.txt
 
-gemini_webapi>=1.0.0,<2.0.0
+gemini_webapi @ git+https://github.com/pdtkts/Gemini-API.git
