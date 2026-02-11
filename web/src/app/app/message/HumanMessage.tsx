@@ -12,7 +12,7 @@ import Button from "@/refresh-components/buttons/Button";
 import { SvgEdit } from "@opal/icons";
 import FileDisplay from "./FileDisplay";
 import { getHumanMessageWrapper } from "@/app/features/chat-registry";
-import "@/app/features/modules/collapsible-message/register";
+import "@/app/features/modules/chat/collapsible-message/register";
 
 interface MessageEditingProps {
   content: string;
