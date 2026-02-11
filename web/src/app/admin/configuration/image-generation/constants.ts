@@ -1,4 +1,4 @@
-import { getFeatureProviderGroups } from "@/app/features/image-gen-registry";
+import { getFeatureProviderGroups } from "@/app/features/registries/image-gen-registry";
 
 export interface ImageProvider {
   image_provider_id: string; // Static unique key for UI-DB mapping

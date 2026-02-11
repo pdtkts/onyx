@@ -46,7 +46,7 @@ function ensureModulesLoaded(): void {
   _modulesLoaded = true;
 
   // Each module calls registerFeatureImageGen() synchronously on require
-  require("./modules/gemini-web-image-gen");
+  require("../modules/admin/gemini-web-image-gen");
 }
 
 /**
