@@ -5,7 +5,7 @@
  * into the feature image-gen registry at import time.
  */
 
-import { registerFeatureImageGen } from "@/app/features/image-gen-registry";
+import { registerFeatureImageGen } from "@/app/features/registries/image-gen-registry";
 import { GeminiWebImageGenForm } from "./GeminiWebImageGenForm";
 
 // Provider group data — type inferred inline to avoid circular import

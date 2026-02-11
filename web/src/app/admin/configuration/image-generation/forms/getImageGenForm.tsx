@@ -3,7 +3,7 @@ import { ImageGenFormBaseProps } from "./types";
 import { OpenAIImageGenForm } from "./OpenAIImageGenForm";
 import { AzureImageGenForm } from "./AzureImageGenForm";
 import { VertexImageGenForm } from "./VertexImageGenForm";
-import { getFeatureImageGenForm } from "@/app/features/image-gen-registry";
+import { getFeatureImageGenForm } from "@/app/features/registries/image-gen-registry";
 
 /**
  * Factory function that routes to the correct provider-specific form

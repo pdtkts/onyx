@@ -11,7 +11,7 @@ import CopyIconButton from "@/refresh-components/buttons/CopyIconButton";
 import Button from "@/refresh-components/buttons/Button";
 import { SvgEdit } from "@opal/icons";
 import FileDisplay from "./FileDisplay";
-import { getHumanMessageWrapper } from "@/app/features/chat-registry";
+import { getHumanMessageWrapper } from "@/app/features/registries/chat-registry";
 import "@/app/features/modules/chat/collapsible-message/register";
 
 interface MessageEditingProps {
