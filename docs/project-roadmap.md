@@ -1,6 +1,6 @@
 # Project Roadmap -- Tee-Agent Fork
 
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 
 ## Phase 0: Foundation [COMPLETE]
 
@@ -43,6 +43,7 @@ Last updated: 2026-02-11
 | UI/UX customizations | Planned | Medium |
 | Custom tool integrations | In Progress | Medium |
 | Gemini Web image generation provider (cookie auth) | Done | High |
+| Admin Theme Module (non-EE, backend+frontend+sidebar) | Done | High |
 | Fork-specific branding | Planned | Low |
 
 ## Phase 3: Production Readiness [PLANNED]
