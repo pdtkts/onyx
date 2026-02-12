@@ -24,19 +24,31 @@ docker ps --filter "name=onyx-infra" --format "table {{.Names}}\t{{.Status}}"
 
 ## 2. Start Backend
 
-```bash
+```powershell
+# PowerShell - load .env rồi khởi động uvicorn
 cd backend
-# Windows (Git Bash)
-set -a && source .env && set +a
-../.venv/Scripts/python.exe -m uvicorn onyx.main:app --host 0.0.0.0 --port 8080 --reload
+..\.venv\Scripts\python.exe -m uvicorn features.onyx.main:app --host 0.0.0.0 --port 8080 --reload --env-file .env
+```
+
+```bash
+# Git Bash - load .env rồi khởi động uvicorn
+cd backend
+set -a && source .env && set +a && ../.venv/Scripts/python.exe -m uvicorn features.onyx.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
 DB migration (chỉ cần chạy lần đầu hoặc khi có migration mới):
 
-```bash
+```powershell
+# PowerShell
 cd backend
-set -a && source .env && set +a
-../.venv/Scripts/python.exe -m alembic upgrade head
+Get-Content .env | ForEach-Object { if ($_ -match '^([^#].+?)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process') } }
+..\.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+```bash
+# Git Bash
+cd backend
+set -a && source .env && set +a && ../.venv/Scripts/python.exe -m alembic upgrade head
 ```
 
 API docs: http://localhost:8080/docs
@@ -79,4 +91,3 @@ docker compose -f docker-compose.infra.yml down
 | Port 9000 conflict (MinIO vs model server) | `DISABLE_MODEL_SERVER=true` trong backend/.env      |
 | `AUTH_TYPE=disabled` not supported         | Dùng `AUTH_TYPE=basic`                              |
 | FE lock file error                         | Xóa `web/.next/dev/lock` rồi chạy lại               |
-
