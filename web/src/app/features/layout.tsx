@@ -1,19 +1,14 @@
 import { redirect } from "next/navigation";
-import { getAuthTypeMetadataSS, getCurrentUserSS } from "@/lib/userSS";
-import { AuthType } from "@/lib/constants";
+import { getCurrentUserSS } from "@/lib/userSS";
 
 export default async function FeaturesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [authTypeMetadata, currentUser] = await Promise.all([
-    getAuthTypeMetadataSS(),
-    getCurrentUserSS(),
-  ]);
+  const currentUser = await getCurrentUserSS();
 
-  const authDisabled = authTypeMetadata?.authType === AuthType.DISABLED;
-  if (!authDisabled && !currentUser) {
+  if (!currentUser) {
     redirect("/auth/login");
   }
 
