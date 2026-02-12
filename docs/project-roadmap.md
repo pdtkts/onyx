@@ -32,7 +32,7 @@ Last updated: 2026-02-11
 | Test Celery worker startup | Pending | Medium |
 | Validate auth flows (basic auth) | Pending | Medium |
 
-## Phase 2: Customization [PLANNED]
+## Phase 2: Customization [IN PROGRESS]
 
 **Goal:** Implement fork-specific features and customizations.
 
@@ -75,17 +75,17 @@ Last updated: 2026-02-11
 
 | Milestone | Target | Status |
 |-----------|--------|--------|
-| Fork established + auto-sync | 2026-01 | Done |
+| Fork established + upstream sync workflow | 2026-01 | Done |
 | Local dev fully functional | 2026-02 | In Progress |
 | First custom feature deployed | 2026-02 | Done |
 | Production deployment ready | TBD | Planned |
 
 ## Upstream Sync Strategy
 
-- Auto-sync `main` from `onyx-dot-app/onyx` every 6 hours
+- Sync is currently triggered via manual dispatch workflow (`.github/workflows/sync-upstream.yml`)
+- Target branch remains `main` from `onyx-dot-app/onyx`
 - Merge conflicts reviewed manually when detected
-- Fork-specific changes kept in separate commits for easy rebase
-- Breaking upstream changes documented in changelog
+- Fork-specific changes kept in separate commits for easier rebase
 
 ## Risk Register
 

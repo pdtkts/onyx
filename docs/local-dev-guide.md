@@ -1,9 +1,9 @@
-# Onyx Local Development Guide
+# Tee-Agent Local Development Guide
 
 ## Prerequisites
 
 - Python 3.11+, Node.js 20+, Docker
-- MinIO được bao gồm trong Docker infra (localhost:9000)
+- MinIO chạy trong Docker infra profile mặc định (`docker-compose.infra.yml`)
 
 ## 1. Start Infrastructure (Docker)
 
@@ -80,4 +80,3 @@ docker compose -f docker-compose.infra.yml down
 | `AUTH_TYPE=disabled` not supported         | Dùng `AUTH_TYPE=basic`                              |
 | FE lock file error                         | Xóa `web/.next/dev/lock` rồi chạy lại               |
 
-cd backend && ../.venv/Scripts/uvicorn.exe features.onyx.main:app --host 0.0.0.0 --port 8080 --reload --env-file .env

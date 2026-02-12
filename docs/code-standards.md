@@ -9,7 +9,7 @@
 
 ## File Organization
 
-- Keep files under 200 lines where possible (800 max)
+- Target file length: <200 lines where practical; hard cap: 800 lines
 - Use kebab-case for filenames: `user-auth-handler.py`, `chat-message-list.tsx`
 - Organize by feature/domain, not by type
 - One concept per module, high cohesion, low coupling
@@ -263,14 +263,17 @@ try {
 ### Backend Tests
 
 ```bash
-# Run all tests
-cd backend && pytest
+# Run all unit tests
+cd backend && py.test -o junit_family=xunit2 -xv --ff tests/unit
 
 # Run specific test
 pytest tests/unit/test_feature.py -v
 
-# With coverage
+# With coverage (local optional)
 pytest --cov=onyx --cov-report=term-missing
+
+# Type check (aligned with CI)
+mypy .
 ```
 
 - Use `pytest` for all Python tests
@@ -284,8 +287,14 @@ pytest --cov=onyx --cov-report=term-missing
 # Unit tests (Jest)
 cd web && npm test
 
+# Lint
+npm run lint
+
+# Type check
+npm run types:check
+
 # E2E tests (Playwright)
-cd web && npx playwright test
+npx playwright test
 ```
 
 - Use Jest for unit/component tests
@@ -307,7 +316,8 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`
 
 ### Branch Strategy
 
-- `main` -- auto-syncs with upstream, always deployable
+- `main` -- sync target for upstream updates; keep deployable
+- Upstream sync is currently triggered via manual dispatch workflow (`.github/workflows/sync-upstream.yml`)
 - `feature/<name>` -- feature branches from main
 - `fix/<name>` -- bug fix branches
 - `chore/<name>` -- maintenance branches

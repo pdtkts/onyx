@@ -12,11 +12,11 @@
 
 ## Vision
 
-Maintain a customized fork of Onyx that auto-syncs upstream changes while enabling project-specific modifications for local development, deployment, and feature experimentation.
+Maintain a customized fork of Onyx that stays aligned with upstream changes while enabling project-specific modifications for local development, deployment, and feature experimentation.
 
 ## Goals
 
-1. **Stay Current** -- Auto-sync upstream every 6h, minimize merge conflicts
+1. **Stay Current** -- Keep upstream sync process healthy (manual dispatch workflow), minimize merge conflicts
 2. **Local-First Dev** -- Streamlined local development with infra-only Docker Compose
 3. **Customization** -- Fork-specific fixes (Vespa CPU compat, dependency pins, config tweaks)
 4. **Documentation** -- Comprehensive internal docs for faster onboarding
@@ -145,7 +145,7 @@ Maintain a customized fork of Onyx that auto-syncs upstream changes while enabli
 
 | Metric | Target |
 |--------|--------|
-| Upstream sync | Every 6h, < 1% conflict rate |
+| Upstream sync workflow health | Manual dispatch success, low conflict rate |
 | Local dev startup | < 5 min from clone to running |
 | Documentation coverage | All major systems documented |
 | Build success rate | > 95% on main branch |

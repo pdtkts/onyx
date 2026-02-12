@@ -58,6 +58,9 @@ docker compose ps
 | `docker-compose.opensearch.yml` | OpenSearch instead of Vespa |
 | `docker-compose.multitenant-dev.yml` | Multi-tenant development |
 | `docker-compose.resources.yml` | With resource limits |
+| `docker-compose.mcp-api-key-test.yml` | Test-only MCP API key flow |
+| `docker-compose.mcp-oauth-test.yml` | Test-only MCP OAuth flow |
+| `docker-compose.search-testing.yml` | Test-only search scenarios |
 
 ### Production with SSL
 
@@ -159,7 +162,7 @@ autoscaling:
 
 ## 3. AWS ECS Fargate
 
-CloudFormation templates in `deployment/aws_ecs_fargate/`.
+CloudFormation templates in `deployment/aws_ecs_fargate/cloudformation/`.
 
 9 service templates covering:
 - API server
@@ -168,7 +171,13 @@ CloudFormation templates in `deployment/aws_ecs_fargate/`.
 - Model server
 - Supporting infrastructure
 
-See upstream docs: [AWS ECS Guide](https://docs.onyx.app/deployment/cloud/aws/eks)
+Primary local reference:
+- `deployment/aws_ecs_fargate/cloudformation/README.md`
+
+Configuration note:
+- `README.md` in that directory describes `onyx_config.json`.
+- Deployment script `deploy.sh` currently reads `onyx_config.jsonl`.
+- Verify and standardize the config filename before production use.
 
 ## 4. Terraform (AWS)
 
