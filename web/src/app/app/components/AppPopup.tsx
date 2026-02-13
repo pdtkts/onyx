@@ -12,6 +12,7 @@ import remarkGfm from "remark-gfm";
 import { transformLinkUri } from "@/lib/utils";
 import { SvgAlertCircle } from "@opal/icons";
 import { IconProps, OnyxIcon } from "@/components/icons/icons";
+import { useAppName } from "@/app/features/modules/admin/theme/use-app-name";
 
 const ALL_USERS_INITIAL_POPUP_FLOW_COMPLETED =
   "allUsersInitialPopupFlowCompleted";
@@ -36,6 +37,7 @@ export function AppPopup() {
     );
   }, []);
 
+  const appName = useAppName();
   const settings = useContext(SettingsContext);
   const enterpriseSettings = settings?.enterpriseSettings;
   const isConsentScreen = enterpriseSettings?.enable_consent_screen;
@@ -76,7 +78,7 @@ export function AppPopup() {
       <Modal.Content width="sm" height="lg">
         <Modal.Header
           icon={headerIcon}
-          title={popupTitle || "Welcome to Onyx!"}
+          title={popupTitle || `Welcome to ${appName}!`}
         />
         <Modal.Body>
           <div className="overflow-y-auto text-left">

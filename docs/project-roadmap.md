@@ -1,6 +1,6 @@
 # Project Roadmap -- Tee-Agent Fork
 
-Last updated: 2026-02-12
+Last updated: 2026-02-14
 
 ## Phase 0: Foundation [COMPLETE]
 
@@ -108,3 +108,4 @@ Last updated: 2026-02-12
 | 2026-01 | AUTH_TYPE=basic | `disabled` no longer supported upstream |
 | 2026-02 | DISABLE_MODEL_SERVER=true | Avoid port 9000 conflict with MinIO |
 | 2026-02 | Gemini Web image provider via runtime injection | Add cookie-based image generation without upstream Python file modifications |
+| 2026-02 | Dynamic app name via Admin Theme | Replace hardcoded "Onyx" with `DEFAULT_APP_NAME` constant and `useAppName()` hook |

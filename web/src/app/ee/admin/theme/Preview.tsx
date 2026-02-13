@@ -7,6 +7,7 @@ import Truncated from "@/refresh-components/texts/Truncated";
 import { cn, ensureHrefProtocol } from "@/lib/utils";
 import { OnyxIcon } from "@/components/icons/icons";
 import MinimalMarkdown from "@/components/chat/MinimalMarkdown";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 const previewMarkdownComponents = {
   p: ({ children }) => (
@@ -133,7 +134,7 @@ function PreviewStart({
             {(logoDisplayStyle === "logo_and_name" ||
               logoDisplayStyle === "name_only") && (
               <Truncated mainUiAction text04 nowrap>
-                {applicationDisplayName || "Onyx"}
+                {applicationDisplayName || DEFAULT_APP_NAME}
               </Truncated>
             )}
           </div>

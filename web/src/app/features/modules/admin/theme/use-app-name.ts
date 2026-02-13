@@ -8,7 +8,7 @@
  *
  * Usage:
  *   const appName = useAppName();
- *   // → "MyCustomApp" or "Onyx" (default)
+ *   // → "MyCustomApp" or DEFAULT_APP_NAME (default)
  */
 
 import { useContext } from "react";

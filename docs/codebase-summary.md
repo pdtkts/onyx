@@ -1,6 +1,6 @@
 # Codebase Summary
 
-Last updated: 2026-02-11
+Last updated: 2026-02-14
 Source: `D:\CODE\fullstack\tee-agent\repomix-output.xml` (generated with `repomix`)
 
 ## Repository Snapshot
@@ -84,7 +84,24 @@ Notes:
 |------|---------|
 | `src/app/features/image-gen-registry.ts` | Registry for fork image-gen modules |
 | `src/app/features/modules/gemini-web-image-gen/` | Gemini Web UI registration + form |
+| `src/app/features/modules/admin/theme/` | Admin Theme module (app name, branding, chat settings) |
 | `src/app/admin/configuration/image-generation/` | Upstream admin image-gen configuration surface |
+
+### Admin Theme Module (`web/src/app/features/modules/admin/theme/`)
+
+| File | Purpose |
+|------|---------|
+| `theme-types.ts` | Type definitions, `DEFAULT_APP_NAME` constant |
+| `use-app-name.ts` | `useAppName()` hook for dynamic app name in client components |
+| `theme-api.ts` | API client for theme settings |
+| `page.tsx` | Admin appearance settings page |
+| `theme-settings-form.tsx` | Main settings form component |
+| `theme-branding-section.tsx` | Branding/logo settings section |
+| `theme-chat-section.tsx` | Chat UI customization section |
+| `theme-notices-section.tsx` | Notice/banner settings section |
+| `theme-preview.tsx` | Live preview component |
+
+The Admin Theme module enables dynamic app branding via `DEFAULT_APP_NAME` constant and `useAppName()` hook, replacing hardcoded "Onyx" strings across ~15 frontend files.
 
 ## Deployment (`deployment/`)
 

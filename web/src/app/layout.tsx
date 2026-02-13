@@ -29,6 +29,7 @@ import GatedContentWrapper from "@/components/GatedContentWrapper";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { fetchAppSidebarMetadata } from "@/lib/appSidebarSS";
 import StatsOverlayLoader from "@/components/dev/StatsOverlayLoader";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: enterpriseSettings?.application_name || "Onyx",
+    title: enterpriseSettings?.application_name || DEFAULT_APP_NAME,
     description: "Question answering for your documents",
     icons: {
       icon: logoLocation,

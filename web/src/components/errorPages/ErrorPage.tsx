@@ -2,6 +2,7 @@ import ErrorPageLayout from "@/components/errorPages/ErrorPageLayout";
 import Text from "@/refresh-components/texts/Text";
 import { DOCS_BASE_URL } from "@/lib/constants";
 import { SvgAlertCircle } from "@opal/icons";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 export default function Error() {
   return (
@@ -14,7 +15,8 @@ export default function Error() {
       </div>
 
       <Text as="p" text03>
-        It seems there was a problem loading your Onyx settings. This could be
+        It seems there was a problem loading your {DEFAULT_APP_NAME} settings.
+        This could be
         due to a configuration issue or incomplete setup.
       </Text>
 
