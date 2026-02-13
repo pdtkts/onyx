@@ -35,6 +35,7 @@ import {
   SvgFileText,
   SvgFolder,
   SvgGlobe,
+  SvgArrowExchange,
   SvgImage,
   SvgKey,
   SvgOnyxLogo,
@@ -314,6 +315,15 @@ const collections = (
                 icon: hasSubscription ? SvgWallet : SvgArrowUpCircle,
                 link: "/admin/billing",
               },
+              ...(settings?.settings.opensearch_indexing_enabled
+                ? [
+                    {
+                      name: "Document Index Migration",
+                      icon: SvgArrowExchange,
+                      link: "/admin/document-index-migration",
+                    },
+                  ]
+                : []),
             ],
           },
         ]

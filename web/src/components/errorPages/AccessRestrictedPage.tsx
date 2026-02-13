@@ -8,6 +8,7 @@ import InlineExternalLink from "@/refresh-components/InlineExternalLink";
 import { logout } from "@/lib/user";
 import { loadStripe } from "@stripe/stripe-js";
 import { NEXT_PUBLIC_CLOUD_ENABLED } from "@/lib/constants";
+import { useLicense } from "@/hooks/useLicense";
 import Text from "@/refresh-components/texts/Text";
 import { SvgLock } from "@opal/icons";
 import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
@@ -39,6 +40,10 @@ const fetchResubscriptionSession = async () => {
 export default function AccessRestricted() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { data: license } = useLicense();
+
+  // Distinguish between "never had a license" vs "license lapsed"
+  const hasLicenseLapsed = license?.has_license === true;
 
   const handleResubscribe = async () => {
     setIsLoading(true);
@@ -69,9 +74,9 @@ export default function AccessRestricted() {
       </div>
 
       <Text text03>
-        Your access to {DEFAULT_APP_NAME} has been temporarily suspended due to a
-        lapse in
-        your subscription.
+        {hasLicenseLapsed
+          ? `Your access to ${DEFAULT_APP_NAME} has been temporarily suspended due to a lapse in your subscription.`
+          : `An Enterprise license is required to use ${DEFAULT_APP_NAME}. Your data is protected and will be available once a license is activated.`}
       </Text>
 
       {NEXT_PUBLIC_CLOUD_ENABLED ? (
@@ -108,21 +113,22 @@ export default function AccessRestricted() {
       ) : (
         <>
           <Text text03>
-            To reinstate your access and continue using {DEFAULT_APP_NAME},
-            please contact
-            your system administrator to renew your license.
+            {hasLicenseLapsed
+              ? `To reinstate your access and continue using ${DEFAULT_APP_NAME}, please contact your system administrator to renew your license.`
+              : "To get started, please contact your system administrator to obtain an Enterprise license."}
           </Text>
 
           <Text text03>
             If you are the administrator, please visit the{" "}
-            <Link className={linkClassName} href="/ee/admin/billing">
+            <Link className={linkClassName} href="/admin/billing">
               Admin Billing
             </Link>{" "}
-            page to update your license, or reach out to{" "}
+            page to {hasLicenseLapsed ? "renew" : "activate"} your license, sign
+            up through Stripe or reach out to{" "}
             <a className={linkClassName} href="mailto:support@onyx.app">
               support@onyx.app
-            </a>{" "}
-            to renew your subscription.
+            </a>
+            for billing assistance.
           </Text>
 
           <div className="flex flex-row gap-2">

@@ -79,6 +79,13 @@ SHARED_DOCUMENTS_MAP_REVERSE = {v: k for k, v in SHARED_DOCUMENTS_MAP.items()}
 
 ASPX_EXTENSION = ".aspx"
 
+# The office365 library's ClientContext caches the access token from
+# The office365 library's ClientContext caches the access token from its
+# first request and never re-invokes the token callback.  Microsoft access
+# tokens live ~60-75 minutes, so we recreate the cached ClientContext every
+# 30 minutes to let MSAL transparently handle token refresh.
+_REST_CTX_MAX_AGE_S = 30 * 60
+
 
 class SiteDescriptor(BaseModel):
     """Data class for storing SharePoint site information.
@@ -114,11 +121,10 @@ def sleep_and_retry(
         try:
             return query_obj.execute_query()
         except ClientRequestException as e:
-            if (
-                e.response is not None
-                and e.response.status_code in [429, 503]
-                and attempt < max_retries
-            ):
+            status = e.response.status_code if e.response is not None else None
+
+            # 429 / 503 — rate limit or transient error.  Back off and retry.
+            if status in (429, 503) and attempt < max_retries:
                 logger.warning(
                     f"Rate limit exceeded on {method_name}, attempt {attempt + 1}/{max_retries + 1}, sleeping and retrying"
                 )
@@ -131,13 +137,15 @@ def sleep_and_retry(
 
                 logger.info(f"Sleeping for {sleep_time} seconds before retry")
                 time.sleep(sleep_time)
-            else:
-                # Either not a rate limit error, or we've exhausted retries
-                if e.response is not None and e.response.status_code == 429:
-                    logger.error(
-                        f"Rate limit retry exhausted for {method_name} after {max_retries} attempts"
-                    )
-                raise e
+                continue
+
+            # Non-retryable error or retries exhausted — log details and raise.
+            if e.response is not None:
+                logger.error(
+                    f"SharePoint request failed for {method_name}: "
+                    f"status={status}, "
+                )
+            raise e
 
 
 class SharepointConnectorCheckpoint(ConnectorCheckpoint):
@@ -713,6 +721,10 @@ class SharepointConnector(
         self.include_site_pages = include_site_pages
         self.include_site_documents = include_site_documents
         self.sp_tenant_domain: str | None = None
+        self._credential_json: dict[str, Any] | None = None
+        self._cached_rest_ctx: ClientContext | None = None
+        self._cached_rest_ctx_url: str | None = None
+        self._cached_rest_ctx_created_at: float = 0.0
 
     def validate_connector_settings(self) -> None:
         # Validate that at least one content type is enabled
@@ -737,6 +749,44 @@ class SharepointConnector(
             raise ConnectorMissingCredentialError("Sharepoint")
 
         return self._graph_client
+
+    def _create_rest_client_context(self, site_url: str) -> ClientContext:
+        """Return a ClientContext for SharePoint REST API calls, with caching.
+
+        The office365 library's ClientContext caches the access token from its
+        first request and never re-invokes the token callback.  We cache the
+        context and recreate it when the site URL changes or after
+        ``_REST_CTX_MAX_AGE_S``.  On recreation we also call
+        ``load_credentials`` to build a fresh MSAL app with an empty token
+        cache, guaranteeing a brand-new token from Azure AD."""
+        elapsed = time.monotonic() - self._cached_rest_ctx_created_at
+        if (
+            self._cached_rest_ctx is not None
+            and self._cached_rest_ctx_url == site_url
+            and elapsed <= _REST_CTX_MAX_AGE_S
+        ):
+            return self._cached_rest_ctx
+
+        if self._credential_json:
+            logger.info(
+                "Rebuilding SharePoint REST client context "
+                "(elapsed=%.0fs, site_changed=%s)",
+                elapsed,
+                self._cached_rest_ctx_url != site_url,
+            )
+            self.load_credentials(self._credential_json)
+
+        if not self.msal_app or not self.sp_tenant_domain:
+            raise RuntimeError("MSAL app or tenant domain is not set")
+
+        msal_app = self.msal_app
+        sp_tenant_domain = self.sp_tenant_domain
+        self._cached_rest_ctx = ClientContext(site_url).with_access_token(
+            lambda: acquire_token_for_rest(msal_app, sp_tenant_domain)
+        )
+        self._cached_rest_ctx_url = site_url
+        self._cached_rest_ctx_created_at = time.monotonic()
+        return self._cached_rest_ctx
 
     @staticmethod
     def _strip_share_link_tokens(path: str) -> list[str]:
@@ -1177,21 +1227,6 @@ class SharepointConnector(
         # goes over all urls, converts them into SlimDocument objects and then yields them in batches
         doc_batch: list[SlimDocument | HierarchyNode] = []
         for site_descriptor in site_descriptors:
-            ctx: ClientContext | None = None
-
-            if self.msal_app and self.sp_tenant_domain:
-                msal_app = self.msal_app
-                sp_tenant_domain = self.sp_tenant_domain
-                ctx = ClientContext(site_descriptor.url).with_access_token(
-                    lambda: acquire_token_for_rest(msal_app, sp_tenant_domain)
-                )
-            else:
-                raise RuntimeError("MSAL app or tenant domain is not set")
-
-            if ctx is None:
-                logger.warning("ClientContext is not set, skipping permissions")
-                continue
-
             site_url = site_descriptor.url
 
             # Yield site hierarchy node using helper
@@ -1230,6 +1265,7 @@ class SharepointConnector(
 
                     try:
                         logger.debug(f"Processing: {driveitem.web_url}")
+                        ctx = self._create_rest_client_context(site_descriptor.url)
                         doc_batch.append(
                             _convert_driveitem_to_slim_document(
                                 driveitem, drive_name, ctx, self.graph_client
@@ -1249,6 +1285,7 @@ class SharepointConnector(
                     logger.debug(
                         f"Processing site page: {site_page.get('webUrl', site_page.get('name', 'Unknown'))}"
                     )
+                    ctx = self._create_rest_client_context(site_descriptor.url)
                     doc_batch.append(
                         _convert_sitepage_to_slim_document(
                             site_page, ctx, self.graph_client
@@ -1260,6 +1297,7 @@ class SharepointConnector(
         yield doc_batch
 
     def load_credentials(self, credentials: dict[str, Any]) -> dict[str, Any] | None:
+        self._credential_json = credentials
         auth_method = credentials.get(
             "authentication_method", SharepointAuthMethod.CLIENT_SECRET.value
         )
@@ -1676,17 +1714,6 @@ class SharepointConnector(
             )
             logger.debug(f"Time range: {start_dt} to {end_dt}")
 
-            ctx: ClientContext | None = None
-            if include_permissions:
-                if self.msal_app and self.sp_tenant_domain:
-                    msal_app = self.msal_app
-                    sp_tenant_domain = self.sp_tenant_domain
-                    ctx = ClientContext(site_descriptor.url).with_access_token(
-                        lambda: acquire_token_for_rest(msal_app, sp_tenant_domain)
-                    )
-                else:
-                    raise RuntimeError("MSAL app or tenant domain is not set")
-
             # At this point current_drive_name should be set from popleft()
             current_drive_name = checkpoint.current_drive_name
             if current_drive_name is None:
@@ -1781,6 +1808,10 @@ class SharepointConnector(
                     )
 
                 try:
+                    ctx: ClientContext | None = None
+                    if include_permissions:
+                        ctx = self._create_rest_client_context(site_descriptor.url)
+
                     doc = _convert_driveitem_to_document_with_permissions(
                         driveitem,
                         current_drive_name,
@@ -1846,20 +1877,13 @@ class SharepointConnector(
             site_pages = self._fetch_site_pages(
                 site_descriptor, start=start_dt, end=end_dt
             )
-            client_ctx: ClientContext | None = None
-            if include_permissions:
-                if self.msal_app and self.sp_tenant_domain:
-                    msal_app = self.msal_app
-                    sp_tenant_domain = self.sp_tenant_domain
-                    client_ctx = ClientContext(site_descriptor.url).with_access_token(
-                        lambda: acquire_token_for_rest(msal_app, sp_tenant_domain)
-                    )
-                else:
-                    raise RuntimeError("MSAL app or tenant domain is not set")
             for site_page in site_pages:
                 logger.debug(
                     f"Processing site page: {site_page.get('webUrl', site_page.get('name', 'Unknown'))}"
                 )
+                client_ctx: ClientContext | None = None
+                if include_permissions:
+                    client_ctx = self._create_rest_client_context(site_descriptor.url)
                 yield (
                     _convert_sitepage_to_document(
                         site_page,

@@ -50,6 +50,7 @@ def _wait_for_file_processed(
 
 
 def test_chat_with_small_project_file(
+    reset: None,  # noqa: ARG001
     admin_user: DATestUser,
     llm_provider: DATestLLMProvider,  # noqa: ARG001
 ) -> None:
@@ -105,6 +106,7 @@ def test_chat_with_small_project_file(
 
 
 def test_persona_with_user_files_chat(
+    reset: None,  # noqa: ARG001
     admin_user: DATestUser,
     llm_provider: DATestLLMProvider,  # noqa: ARG001
 ) -> None:
@@ -149,6 +151,8 @@ def test_persona_with_user_files_chat(
     persona = PersonaManager.create(
         name="no-vectordb-persona-test",
         description="Test persona for no-vectordb mode",
+        system_prompt="You are a helpful assistant. Answer questions using the available tools and files.",
+        task_prompt="",
         user_file_ids=[user_file_id],
         tool_ids=[file_reader_tool.id],
         user_performing_action=admin_user,
@@ -207,6 +211,7 @@ def _base_persona_body(**overrides: object) -> dict:
 
 
 def test_persona_rejects_document_sets_without_vector_db(
+    reset: None,  # noqa: ARG001
     admin_user: DATestUser,
 ) -> None:
     """Creating a persona with document_set_ids should fail with 400."""
@@ -221,6 +226,7 @@ def test_persona_rejects_document_sets_without_vector_db(
 
 
 def test_persona_rejects_document_ids_without_vector_db(
+    reset: None,  # noqa: ARG001
     admin_user: DATestUser,
 ) -> None:
     """Creating a persona with document_ids should fail with 400."""

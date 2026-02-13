@@ -619,14 +619,30 @@ def handle_stream_message_objects(
 
         user_memory_context = get_memories(user, db_session)
 
+        # This is the custom prompt which may come from the Agent or Project. We fetch it earlier because the inner loop
+        # (run_llm_loop and run_deep_research_llm_loop) should not need to be aware of the Chat History in the DB form processed
+        # here, however we need this early for token reservation.
         custom_agent_prompt = get_custom_agent_prompt(persona, chat_session)
+
+        # When use_memories is disabled, strip memories from the prompt context
+        # but keep user info/preferences. The full context is still passed
+        # to the LLM loop for memory tool persistence.
+        prompt_memory_context = (
+            user_memory_context
+            if user.use_memories
+            else user_memory_context.without_memories()
+        )
+
+        max_reserved_system_prompt_tokens_str = (persona.system_prompt or "") + (
+            custom_agent_prompt or ""
+        )
 
         reserved_token_count = calculate_reserved_tokens(
             db_session=db_session,
-            persona_system_prompt=custom_agent_prompt or "",
+            persona_system_prompt=max_reserved_system_prompt_tokens_str,
             token_counter=token_counter,
             files=new_msg_req.file_descriptors,
-            user_memory_context=user_memory_context,
+            user_memory_context=prompt_memory_context,
         )
 
         # Process projects, if all of the files fit in the context, it doesn't need to use RAG
@@ -878,6 +894,7 @@ def handle_stream_message_objects(
                 chat_session_id=str(chat_session.id),
                 include_citations=new_msg_req.include_citations,
                 all_injected_file_metadata=all_injected_file_metadata,
+                inject_memories_in_prompt=user.use_memories,
             )
 
     except ValueError as e:

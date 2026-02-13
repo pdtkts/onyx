@@ -194,6 +194,98 @@ def _get_local_aws_credential_env_vars() -> list[client.V1EnvVar]:
     return env_vars
 
 
+def _build_filtered_symlink_script(
+    session_path: str,
+    excluded_user_library_paths: list[str],
+) -> str:
+    """Build a shell script that creates filtered symlinks for user_library.
+
+    Creates symlinks for all top-level directories in /workspace/files/,
+    then selectively symlinks user_library files, excluding disabled paths.
+
+    TODO: Replace this inline shell script with a standalone Python script
+    that gets copied onto the pod and invoked with arguments. This would
+    be easier to test and maintain.
+
+    Args:
+        session_path: The session directory path in the pod
+        excluded_user_library_paths: Paths to exclude from symlinks
+    """
+    excluded_paths_lines = "\n".join(p.lstrip("/") for p in excluded_user_library_paths)
+    heredoc_delim = f"_EXCL_{uuid4().hex[:12]}_"
+    return f"""
+# Create filtered files directory with exclusions
+mkdir -p {session_path}/files
+
+# Symlink all top-level directories except user_library
+for item in /workspace/files/*; do
+    [ -e "$item" ] || continue
+    name=$(basename "$item")
+    if [ "$name" != "user_library" ]; then
+        ln -sf "$item" {session_path}/files/"$name"
+    fi
+done
+
+# Write excluded paths to a temp file (one per line, via heredoc for safety)
+EXCL_FILE=$(mktemp)
+cat > "$EXCL_FILE" << '{heredoc_delim}'
+{excluded_paths_lines}
+{heredoc_delim}
+
+# Check if a relative path is excluded (exact match or child of excluded dir)
+is_excluded() {{
+    local rel_path="$1"
+    while IFS= read -r excl || [ -n "$excl" ]; do
+        [ -z "$excl" ] && continue
+        if [ "$rel_path" = "$excl" ]; then
+            return 0
+        fi
+        case "$rel_path" in
+            "$excl"/*) return 0 ;;
+        esac
+    done < "$EXCL_FILE"
+    return 1
+}}
+
+# Recursively create symlinks for non-excluded files
+create_filtered_symlinks() {{
+    src_dir="$1"
+    dst_dir="$2"
+    rel_base="$3"
+
+    for item in "$src_dir"/*; do
+        [ -e "$item" ] || continue
+        name=$(basename "$item")
+        if [ -n "$rel_base" ]; then
+            rel_path="$rel_base/$name"
+        else
+            rel_path="$name"
+        fi
+
+        if is_excluded "$rel_path"; then
+            continue
+        fi
+
+        if [ -d "$item" ]; then
+            mkdir -p "$dst_dir/$name"
+            create_filtered_symlinks "$item" "$dst_dir/$name" "$rel_path"
+            rmdir "$dst_dir/$name" 2>/dev/null || true
+        else
+            ln -sf "$item" "$dst_dir/$name"
+        fi
+    done
+}}
+
+if [ -d "/workspace/files/user_library" ]; then
+    mkdir -p {session_path}/files/user_library
+    create_filtered_symlinks /workspace/files/user_library {session_path}/files/user_library ""
+    rmdir {session_path}/files/user_library 2>/dev/null || true
+fi
+
+rm -f "$EXCL_FILE"
+"""
+
+
 class KubernetesSandboxManager(SandboxManager):
     """Kubernetes-based sandbox manager for production deployments.
 
@@ -259,7 +351,7 @@ class KubernetesSandboxManager(SandboxManager):
         # Load AGENTS.md template path
         build_dir = Path(__file__).parent.parent.parent  # /onyx/server/features/build/
         self._agent_instructions_template_path = build_dir / "AGENTS.template.md"
-        self._skills_path = build_dir / "skills"
+        self._skills_path = Path(__file__).parent / "docker" / "skills"
 
         logger.info(
             f"KubernetesSandboxManager initialized: "
@@ -440,7 +532,7 @@ done
             ],
             resources=client.V1ResourceRequirements(
                 requests={"cpu": "1000m", "memory": "2Gi"},
-                limits={"cpu": "4000m", "memory": "8Gi"},
+                limits={"cpu": "2000m", "memory": "10Gi"},
             ),
             # TODO: Re-enable probes when sandbox container runs actual services.
             # Note: Next.js ports are now per-session (dynamic), so container-level
@@ -1087,6 +1179,7 @@ done
         user_work_area: str | None = None,
         user_level: str | None = None,
         use_demo_data: bool = False,
+        excluded_user_library_paths: list[str] | None = None,
     ) -> None:
         """Set up a session workspace within an existing sandbox pod.
 
@@ -1115,6 +1208,8 @@ done
             user_level: User's level for demo persona (e.g., "ic", "manager")
             use_demo_data: If True, symlink files/ to /workspace/demo_data;
                           else to /workspace/files (S3-synced user files)
+            excluded_user_library_paths: List of paths within user_library/ to exclude
+                (e.g., ["/data/file.xlsx"]). These files won't be accessible in the session.
 
         Raises:
             RuntimeError: If workspace setup fails
@@ -1195,6 +1290,10 @@ printf '%s' '{org_structure_escaped}' > {session_path}/org_info/organization_str
 echo "Creating files symlink to demo data: {symlink_target}"
 ln -sf {symlink_target} {session_path}/files
 """
+        elif excluded_user_library_paths:
+            files_symlink_setup = _build_filtered_symlink_script(
+                session_path, excluded_user_library_paths
+            )
         else:
             # Normal mode: symlink to user's S3-synced knowledge files
             symlink_target = "/workspace/files"
@@ -1234,6 +1333,13 @@ mkdir -p {session_path}/attachments
 {files_symlink_setup}
 # Setup outputs
 {outputs_setup}
+
+# Symlink skills (baked into image at /workspace/skills/)
+if [ -d /workspace/skills ]; then
+    mkdir -p {session_path}/.opencode
+    ln -sf /workspace/skills {session_path}/.opencode/skills
+    echo "Linked skills to /workspace/skills"
+fi
 
 # Write agent instructions
 echo "Writing AGENTS.md"
@@ -1994,6 +2100,84 @@ echo "Session config regeneration complete"
         """
         return self._get_nextjs_url(str(sandbox_id), port)
 
+    def generate_pptx_preview(
+        self,
+        sandbox_id: UUID,
+        session_id: UUID,
+        pptx_path: str,
+        cache_dir: str,
+    ) -> tuple[list[str], bool]:
+        """Convert PPTX to slide images using soffice + pdftoppm in the pod.
+
+        Runs preview.py in the sandbox container which:
+        1. Checks if cached slides exist and are newer than the PPTX
+        2. If not, converts PPTX -> PDF -> JPEG slides
+        3. Returns list of slide image paths
+        """
+        pod_name = self._get_pod_name(str(sandbox_id))
+
+        # Security: sanitize paths
+        pptx_path_obj = Path(pptx_path.lstrip("/"))
+        pptx_clean_parts = [p for p in pptx_path_obj.parts if p != ".."]
+        clean_pptx = str(Path(*pptx_clean_parts)) if pptx_clean_parts else "."
+
+        cache_path_obj = Path(cache_dir.lstrip("/"))
+        cache_clean_parts = [p for p in cache_path_obj.parts if p != ".."]
+        clean_cache = str(Path(*cache_clean_parts)) if cache_clean_parts else "."
+
+        session_root = f"/workspace/sessions/{session_id}"
+        pptx_abs = f"{session_root}/{clean_pptx}"
+        cache_abs = f"{session_root}/{clean_cache}"
+
+        exec_command = [
+            "python",
+            "/workspace/skills/pptx/scripts/preview.py",
+            pptx_abs,
+            cache_abs,
+        ]
+
+        try:
+            resp = k8s_stream(
+                self._stream_core_api.connect_get_namespaced_pod_exec,
+                name=pod_name,
+                namespace=self._namespace,
+                container="sandbox",
+                command=exec_command,
+                stderr=True,
+                stdin=False,
+                stdout=True,
+                tty=False,
+            )
+
+            lines = [line.strip() for line in resp.strip().split("\n") if line.strip()]
+
+            if not lines:
+                raise ValueError("Empty response from PPTX conversion")
+
+            if lines[0] == "ERROR_NOT_FOUND":
+                raise ValueError(f"File not found: {pptx_path}")
+
+            if lines[0] == "ERROR_NO_PDF":
+                raise ValueError("soffice did not produce a PDF file")
+
+            cached = lines[0] == "CACHED"
+            # Skip the status line, rest are file paths
+            abs_paths = lines[1:] if lines[0] in ("CACHED", "GENERATED") else lines
+
+            # Convert absolute paths to session-relative paths
+            prefix = f"{session_root}/"
+            rel_paths = []
+            for p in abs_paths:
+                if p.startswith(prefix):
+                    rel_paths.append(p[len(prefix) :])
+                elif p.endswith(".jpg"):
+                    rel_paths.append(p)
+
+            return (rel_paths, cached)
+
+        except ApiException as e:
+            raise RuntimeError(f"Failed to generate PPTX preview: {e}") from e
+
     def sync_files(
         self,
         sandbox_id: UUID,
@@ -2007,6 +2191,10 @@ echo "Session config regeneration complete"
         any new or changed files from S3 to /workspace/files/.
 
         This is safe to call multiple times - s5cmd sync is idempotent.
+
+        Note: For user_library source, --delete is NOT used since deletions
+        are handled explicitly by the delete_file API endpoint. File visibility
+        in sessions is controlled via filtered symlinks in setup_session_workspace().
 
         Args:
             sandbox_id: The sandbox UUID
@@ -2031,11 +2219,16 @@ echo "Session config regeneration complete"
             s3_path = f"s3://{self._s3_bucket}/{tenant_id}/knowledge/{str(user_id)}/*"
             local_path = "/workspace/files/"
 
-        # s5cmd sync: high-performance parallel S3 sync
-        # --delete: mirror S3 to local (remove files that no longer exist in source)
+        # s5cmd sync with --delete for external connectors only.
         # timeout: prevent zombie processes from kubectl exec disconnections
         # trap: kill child processes on exit/disconnect
         source_info = f" (source={source})" if source else ""
+
+        # Sources where --delete is explicitly forbidden (deletions handled via API)
+        NO_DELETE_SOURCES = {"user_library"}
+        use_delete = source is not None and source not in NO_DELETE_SOURCES
+        delete_flag = " --delete" if use_delete else ""
+
         sync_script = f"""
 # Kill child processes on exit/disconnect to prevent zombie s5cmd workers
 cleanup() {{ pkill -P $$ 2>/dev/null || true; }}
@@ -2052,7 +2245,7 @@ mkdir -p "{local_path}"
 # Exit codes: 0=success, 1=success with warnings, 124=timeout
 sync_exit_code=0
 timeout --signal=TERM --kill-after=10s 5m \
-    /s5cmd --stat sync --delete "{s3_path}" "{local_path}" 2>&1 || sync_exit_code=$?
+    /s5cmd --stat sync{delete_flag} "{s3_path}" "{local_path}" 2>&1 || sync_exit_code=$?
 
 echo "=== Sync finished (exit code: $sync_exit_code) ==="
 
