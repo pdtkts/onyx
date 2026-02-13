@@ -12,7 +12,7 @@ export type ThemeSettings = EnterpriseSettings;
  * Default application name used as fallback when no custom name is configured.
  * Centralized here so all theme-related code references one constant.
  */
-export const DEFAULT_APP_NAME = "Onyx";
+export const DEFAULT_APP_NAME = "Hihi";
 
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   application_name: null,
