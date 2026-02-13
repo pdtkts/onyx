@@ -11,6 +11,7 @@ import { cn, noProp } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { usePaidEnterpriseFeaturesEnabled } from "@/components/settings/usePaidEnterpriseFeaturesEnabled";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 import { checkUserOwnsAssistant, updateAgentSharedStatus } from "@/lib/agents";
 import { useUser } from "@/providers/UserProvider";
 import {
@@ -164,7 +165,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
             <div className="flex flex-col gap-1 py-1 px-2">
               <LineItemLayout
                 icon={SvgUser}
-                title={agent.owner?.email || "Onyx"}
+                title={agent.owner?.email || DEFAULT_APP_NAME}
                 variant="mini"
               />
               <LineItemLayout

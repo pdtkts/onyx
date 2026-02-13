@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { OnyxIcon } from "../icons/icons";
+import { useAppName } from "@/app/features/modules/admin/theme/use-app-name";
 
 export default function AuthFlowContainer({
   children,
@@ -10,6 +13,8 @@ export default function AuthFlowContainer({
   authState?: "signup" | "login" | "join";
   footerContent?: React.ReactNode;
 }) {
+  const appName = useAppName();
+
   return (
     <div className="p-4 flex flex-col items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md flex items-start flex-col bg-background-tint-00 rounded-16 shadow-lg shadow-02 p-6">
@@ -20,7 +25,7 @@ export default function AuthFlowContainer({
         <div className="text-sm mt-6 text-center w-full text-text-03 mainUiBody mx-auto">
           {footerContent ?? (
             <>
-              New to Onyx?{" "}
+              New to {appName}?{" "}
               <Link
                 href="/auth/signup"
                 className="text-text-05 mainUiAction underline transition-colors duration-200"

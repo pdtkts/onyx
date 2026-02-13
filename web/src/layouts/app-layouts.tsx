@@ -59,6 +59,7 @@ import {
 import MinimalMarkdown from "@/components/chat/MinimalMarkdown";
 import { useSettingsContext } from "@/providers/SettingsProvider";
 import useAppFocus from "@/hooks/useAppFocus";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 /**
  * App Header Component
@@ -384,9 +385,10 @@ function Footer() {
   const settings = useSettingsContext();
   const appFocus = useAppFocus();
 
+  const appName = settings?.enterpriseSettings?.application_name || DEFAULT_APP_NAME;
   const customFooterContent =
     settings?.enterpriseSettings?.custom_lower_disclaimer_content ||
-    `[Onyx ${
+    `[${appName} ${
       settings?.webVersion || "dev"
     }](https://www.onyx.app/) - Open Source AI Platform`;
 

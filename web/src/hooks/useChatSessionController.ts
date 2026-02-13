@@ -182,8 +182,24 @@ export default function useChatSessionController({
         `/api/chat/get-chat-session/${existingChatSessionId}`
       );
 
+      if (!response.ok) {
+        console.error(
+          `Failed to fetch chat session ${existingChatSessionId}: ${response.status}`
+        );
+        setIsFetchingChatMessages(existingChatSessionId, false);
+        return;
+      }
+
       const session = await response.json();
       const chatSession = session as BackendChatSession;
+
+      if (!chatSession.messages || !chatSession.packets) {
+        console.error(
+          `Chat session ${existingChatSessionId} has invalid data`
+        );
+        setIsFetchingChatMessages(existingChatSessionId, false);
+        return;
+      }
       setSelectedAssistantFromId(chatSession.persona_id);
 
       // Ensure the current session is set to the actual session ID from the response

@@ -15,6 +15,7 @@ import AuthErrorDisplay from "@/components/auth/AuthErrorDisplay";
 import Text from "@/refresh-components/texts/Text";
 import { cn } from "@/lib/utils";
 import { AuthType } from "@/lib/constants";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 const Page = async (props: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -79,7 +80,7 @@ const Page = async (props: {
               {cloud ? "Complete your sign up" : "Create account"}
             </Text>
             <Text as="p" text03>
-              Get started with Onyx
+              Get started with {DEFAULT_APP_NAME}
             </Text>
           </div>
           {cloud && authUrl && (

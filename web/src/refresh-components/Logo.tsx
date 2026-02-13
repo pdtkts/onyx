@@ -3,13 +3,8 @@
 import { OnyxIcon, OnyxLogoTypeIcon } from "@/components/icons/icons";
 import { useSettingsContext } from "@/providers/SettingsProvider";
 import Image from "next/image";
-import {
-  LOGO_FOLDED_SIZE_PX,
-  LOGO_UNFOLDED_SIZE_PX,
-  NEXT_PUBLIC_DO_NOT_USE_TOGGLE_OFF_DANSWER_POWERED,
-} from "@/lib/constants";
+import { LOGO_FOLDED_SIZE_PX, LOGO_UNFOLDED_SIZE_PX } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import Text from "@/refresh-components/texts/Text";
 import Truncated from "@/refresh-components/texts/Truncated";
 import { useMemo } from "react";
 
@@ -67,19 +62,7 @@ export default function Logo({ folded, size, className }: LogoProps) {
             </div>
           )}
         </div>
-        {!NEXT_PUBLIC_DO_NOT_USE_TOGGLE_OFF_DANSWER_POWERED && !folded && (
-          <Text
-            secondaryBody
-            text03
-            className={cn(
-              "line-clamp-1 truncate",
-              opts.includeLogo && opts.includeName && "ml-[33px]"
-            )}
-            nowrap
-          >
-            Powered by Onyx
-          </Text>
-        )}
+        {/* "Powered by Onyx" removed — this is a custom fork */}
       </div>
     );
   };

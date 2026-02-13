@@ -81,6 +81,15 @@ def get_application() -> FastAPI:
         application, features_health_router
     )
 
+    # Admin theme module (non-EE replacement for enterprise appearance)
+    from features.onyx.modules.admin_theme.api import admin_router as theme_admin_router
+    from features.onyx.modules.admin_theme.api import basic_router as theme_basic_router
+    from features.onyx.modules.admin_theme.api import compat_router as theme_compat_router
+
+    include_router_with_global_prefix_prepended(application, theme_admin_router)
+    include_router_with_global_prefix_prepended(application, theme_basic_router)
+    include_router_with_global_prefix_prepended(application, theme_compat_router)
+
     # Verify all features routes have auth (safety net)
     check_router_auth(application)
 

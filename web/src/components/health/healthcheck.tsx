@@ -12,6 +12,7 @@ import Button from "@/refresh-components/buttons/Button";
 import { logout } from "@/lib/user";
 import { usePathname, useRouter } from "next/navigation";
 import { SvgLogOut } from "@opal/icons";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 export const HealthCheckBanner = () => {
   const router = useRouter();
   const { error } = useSWR("/api/health", errorHandlingFetcher);
@@ -215,7 +216,7 @@ export const HealthCheckBanner = () => {
         <p className="font-bold pb-1">The backend is currently unavailable.</p>
 
         <p className="px-1">
-          If this is your initial setup or you just updated your Onyx
+          If this is your initial setup or you just updated your {DEFAULT_APP_NAME}
           deployment, this is likely because the backend is still starting up.
           Give it a minute or two, and then refresh the page. If that does not
           work, make sure the backend is setup and/or contact an administrator.

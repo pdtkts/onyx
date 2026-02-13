@@ -93,6 +93,18 @@ export async function fetchSettingsSS(): Promise<CombinedSettings | null> {
       }
     }
 
+    // Theme module fallback: inject theme settings when EE not available
+    if (!enterpriseSettings) {
+      try {
+        const themeResponse = await fetchSS("/features/theme-settings");
+        if (themeResponse && themeResponse.ok) {
+          enterpriseSettings = await themeResponse.json();
+        }
+      } catch {
+        // silent fallback — enterpriseSettings stays null
+      }
+    }
+
     let customAnalyticsScript: string | null = null;
     if (tasks.length > 2) {
       const result_2 = results[2];

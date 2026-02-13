@@ -1,5 +1,6 @@
 import Text from "@/refresh-components/texts/Text";
 import ErrorPageLayout from "@/components/errorPages/ErrorPageLayout";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 export default function CloudError() {
   return (
@@ -9,7 +10,8 @@ export default function CloudError() {
       </Text>
 
       <Text as="p" text03>
-        Onyx is currently in a maintenance window. Please check back in a couple
+        {DEFAULT_APP_NAME} is currently in a maintenance window. Please check back
+        in a couple
         of minutes.
       </Text>
 

@@ -10,6 +10,7 @@ import { useIsKGExposed } from "@/app/admin/kg/utils";
 import { useCustomAnalyticsEnabled } from "@/lib/hooks/useCustomAnalyticsEnabled";
 import { useUser } from "@/providers/UserProvider";
 import { UserRole } from "@/lib/types";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 import {
   useBillingInformation,
   useLicense,
@@ -302,15 +303,11 @@ const collections = (
                 icon: SvgSettings,
                 link: "/admin/settings",
               },
-              ...(enableEnterprise
-                ? [
-                    {
-                      name: "Appearance & Theming",
-                      icon: SvgPaintBrush,
-                      link: "/admin/theme",
-                    },
-                  ]
-                : []),
+              {
+                name: "Appearance & Theming",
+                icon: SvgPaintBrush,
+                link: "/features/modules/admin/theme",
+              },
               // Always show billing/upgrade - community users need access to upgrade
               {
                 name: hasSubscription ? "Plans & Billing" : "Upgrade Plan",
@@ -386,7 +383,7 @@ export default function AdminSidebar({
           <div className="flex flex-col gap-2">
             {settings.webVersion && (
               <Text as="p" text02 secondaryBody className="px-2">
-                {`Onyx version: ${settings.webVersion}`}
+                {`${settings.enterpriseSettings?.application_name || DEFAULT_APP_NAME} v${settings.webVersion}`}
               </Text>
             )}
             <UserAvatarPopover />

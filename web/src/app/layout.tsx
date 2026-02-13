@@ -1,13 +1,9 @@
 import "./globals.css";
 
-import {
-  fetchEnterpriseSettingsSS,
-  fetchSettingsSS,
-} from "@/components/settings/lib";
+import { fetchSettingsSS } from "@/components/settings/lib";
 import {
   CUSTOM_ANALYTICS_ENABLED,
   GTM_ENABLED,
-  SERVER_SIDE_ONLY__PAID_ENTERPRISE_FEATURES_ENABLED,
   NEXT_PUBLIC_CLOUD_ENABLED,
   MODAL_ROOT_ID,
 } from "@/lib/constants";
@@ -33,6 +29,7 @@ import GatedContentWrapper from "@/components/GatedContentWrapper";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { fetchAppSidebarMetadata } from "@/lib/appSidebarSS";
 import StatsOverlayLoader from "@/components/dev/StatsOverlayLoader";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,16 +46,19 @@ const hankenGrotesk = Hanken_Grotesk({
 export async function generateMetadata(): Promise<Metadata> {
   let logoLocation = buildClientUrl("/favicon.ico");
   let enterpriseSettings: EnterpriseSettings | null = null;
-  if (SERVER_SIDE_ONLY__PAID_ENTERPRISE_FEATURES_ENABLED) {
-    enterpriseSettings = await (await fetchEnterpriseSettingsSS()).json();
+
+  // Use fetchSettingsSS which includes theme inject fallback
+  const combinedSettings = await fetchSettingsSS();
+  if (combinedSettings?.enterpriseSettings) {
+    enterpriseSettings = combinedSettings.enterpriseSettings;
     logoLocation =
-      enterpriseSettings && enterpriseSettings.use_custom_logo
+      enterpriseSettings.use_custom_logo
         ? "/api/enterprise-settings/logo"
         : buildClientUrl("/favicon.ico");
   }
 
   return {
-    title: enterpriseSettings?.application_name || "Onyx",
+    title: enterpriseSettings?.application_name || DEFAULT_APP_NAME,
     description: "Question answering for your documents",
     icons: {
       icon: logoLocation,

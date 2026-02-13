@@ -8,6 +8,7 @@ import { SettingsContext } from "@/providers/SettingsProvider";
 import { getSourceMetadata } from "@/lib/sources";
 import useFederatedOAuthStatus from "@/hooks/useFederatedOAuthStatus";
 import { SvgLink } from "@opal/icons";
+import { DEFAULT_APP_NAME } from "@/app/features/modules/admin/theme/theme-types";
 import { Card } from "@/refresh-components/cards";
 import { LineItemLayout } from "@/layouts/general-layouts";
 
@@ -118,7 +119,7 @@ export default function FederatedOAuthModal() {
   }
 
   const applicationName =
-    settings?.enterpriseSettings?.application_name || "Onyx";
+    settings?.enterpriseSettings?.application_name || DEFAULT_APP_NAME;
 
   return (
     <Modal open>
