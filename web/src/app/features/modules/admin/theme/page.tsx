@@ -5,7 +5,7 @@ import { SvgPaintBrush } from "@opal/icons";
 import Button from "@/refresh-components/buttons/Button";
 import { useContext, useRef, useState } from "react";
 import { SettingsContext } from "@/providers/SettingsProvider";
-import { usePopup } from "@/components/admin/connectors/Popup";
+import { toast } from "@/hooks/useToast";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
@@ -66,7 +66,6 @@ export default function ThemePage() {
   const settings = useContext(SettingsContext);
   const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
   const formRef = useRef<ThemeSettingsFormRef>(null);
-  const { popup, setPopup } = usePopup();
 
   if (!settings) return null;
 
@@ -119,10 +118,10 @@ export default function ThemePage() {
           await updateThemeSettings(merged);
           router.refresh();
           formikHelpers.resetForm({ values });
-          setPopup({ type: "success", message: "Appearance settings saved successfully!" });
+          toast.success("Appearance settings saved successfully!");
         } catch (error) {
           const msg = error instanceof Error ? error.message : "Unknown error";
-          setPopup({ type: "error", message: `Failed to save settings: ${msg}` });
+          toast.error(`Failed to save settings: ${msg}`);
         } finally {
           formikHelpers.setSubmitting(false);
         }
@@ -132,7 +131,6 @@ export default function ThemePage() {
         const hasLogoChange = !!selectedLogo;
         return (
           <Form className="w-full h-full">
-            {popup}
             <SettingsLayouts.Root>
               <SettingsLayouts.Header
                 title="Appearance & Theming"
