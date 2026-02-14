@@ -201,6 +201,8 @@ def get_vertexai_model_names() -> list[str]:
             and "live" not in model.lower()  # live/streaming models
             and "tts" not in model.lower()  # text-to-speech
             and "native-audio" not in model.lower()  # audio models
+            and "chirp" not in model.lower()  # speech-to-text models
+            and "ocr" not in model.lower()  # OCR models (not text LLMs)
             and "/" not in model  # filter out prefixed models like openai/gpt-oss
             and "search_api" not in model.lower()  # not a model
             and "-maas" not in model.lower()  # marketplace models
