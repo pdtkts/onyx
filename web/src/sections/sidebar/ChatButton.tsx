@@ -10,6 +10,7 @@ import Button from "@/refresh-components/buttons/Button";
 import { cn, noProp } from "@/lib/utils";
 import Popover, { PopoverMenu } from "@/refresh-components/Popover";
 import { useAppRouter } from "@/hooks/appNavigation";
+import { useRouter } from "next/navigation";
 import {
   Project,
   removeChatSessionFromProject,
@@ -104,6 +105,7 @@ export interface ChatButtonProps {
 const ChatButton = memo(
   ({ chatSession, project, draggable = false }: ChatButtonProps) => {
     const route = useAppRouter();
+    const router = useRouter();
     const activeSidebarTab = useAppFocus();
     const active = useMemo(
       () =>
@@ -311,6 +313,9 @@ const ChatButton = memo(
           if (active) {
             route({ projectId: project.id });
           }
+        } else if (active) {
+          // Redirect to new chat when deleting the currently active non-project chat
+          router.replace("/app");
         }
         await refreshChatSessions();
       } catch (error) {

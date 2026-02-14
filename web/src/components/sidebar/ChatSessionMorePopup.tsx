@@ -10,6 +10,8 @@ import {
 import Popover, { PopoverMenu } from "@/refresh-components/Popover";
 import { FiMoreHorizontal } from "react-icons/fi";
 import useChatSessions from "@/hooks/useChatSessions";
+import useAppFocus from "@/hooks/useAppFocus";
+import { useRouter } from "next/navigation";
 import { useCallback, useState, useMemo } from "react";
 import MoveCustomAgentChatModal from "@/components/modals/MoveCustomAgentChatModal";
 // PopoverMenu already imported above
@@ -54,6 +56,11 @@ export function ChatSessionMorePopup({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { refreshChatSessions } = useChatSessions();
   const { fetchProjects, projects } = useProjectsContext();
+  const activeSidebarTab = useAppFocus();
+  const router = useRouter();
+  const isActiveChat =
+    activeSidebarTab.isChat() &&
+    activeSidebarTab.getId() === chatSession.id;
 
   const [pendingMoveProjectId, setPendingMoveProjectId] = useState<
     number | null
@@ -83,9 +90,15 @@ export function ChatSessionMorePopup({
       await fetchProjects();
       setIsDeleteModalOpen(false);
       setPopoverOpen(false);
+
+      // Redirect to new chat when deleting the currently active chat
+      if (isActiveChat) {
+        router.replace("/app");
+      }
+
       afterDelete?.();
     },
-    [chatSession, refreshChatSessions, fetchProjects, afterDelete]
+    [chatSession, refreshChatSessions, fetchProjects, afterDelete, isActiveChat, router]
   );
 
   const performMove = useCallback(
