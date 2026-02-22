@@ -63,6 +63,18 @@ const nextConfig = {
         ],
       },
       {
+        // Cache enterprise logo to prevent refetching on every page navigation
+        source: "/api/enterprise-settings/logo",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: isDev
+              ? "public, max-age=60" // Dev: 1 minute
+              : "public, max-age=300, stale-while-revalidate=60", // Prod: 5 min + 1 min stale
+          },
+        ],
+      },
+      {
         // Cache static assets (images, icons, fonts, etc.) to prevent refetching and re-renders
         source: "/_next/static/:path*",
         headers: [
