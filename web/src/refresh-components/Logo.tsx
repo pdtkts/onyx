@@ -53,15 +53,16 @@ export default function Logo({ folded, size, className }: LogoProps) {
     includeName: boolean;
   }) => {
     return (
-      <div className="flex flex-col min-w-0">
-        <div className="flex flex-row items-center gap-2 min-w-0">
-          {opts.includeLogo && logo}
-          {opts.includeName && !folded && (
-            <div className="flex-1 min-w-0">
+      <div className="flex min-w-0 gap-2">
+        {opts.includeLogo && logo}
+        {!folded && (
+          /* H3 text is 4px larger (28px) than the Logo icon (24px), so negative margin hack. */
+          <div className="flex flex-1 flex-col -mt-0.5">
+            {opts.includeName && (
               <Truncated headingH3>{applicationName}</Truncated>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         {/* "Powered by Onyx" removed — this is a custom fork */}
       </div>
     );

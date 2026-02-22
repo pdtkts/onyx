@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { MinimalPersonaSnapshot } from "@/app/admin/assistants/interfaces";
 import AgentAvatar from "@/refresh-components/avatars/AgentAvatar";
 import Button from "@/refresh-components/buttons/Button";
@@ -26,6 +26,7 @@ import {
 } from "@opal/icons";
 import { useCreateModal } from "@/refresh-components/contexts/ModalContext";
 import ShareAgentModal from "@/sections/modals/ShareAgentModal";
+import AgentViewerModal from "@/sections/modals/AgentViewerModal";
 import { toast } from "@/hooks/useToast";
 import { LineItemLayout, CardItemLayout } from "@/layouts/general-layouts";
 import { Interactive } from "@opal/core";
@@ -46,8 +47,8 @@ export default function AgentCard({ agent }: AgentCardProps) {
   const { user } = useUser();
   const isPaidEnterpriseFeaturesEnabled = usePaidEnterpriseFeaturesEnabled();
   const isOwnedByUser = checkUserOwnsAssistant(user, agent);
-  const [hovered, setHovered] = React.useState(false);
   const shareAgentModal = useCreateModal();
+  const agentViewerModal = useCreateModal();
   const { agent: fullAgent, refresh: refreshAgent } = useAgent(agent.id);
 
   // Start chat and auto-pin unpinned agents to the sidebar
@@ -92,11 +93,13 @@ export default function AgentCard({ agent }: AgentCardProps) {
         />
       </shareAgentModal.Provider>
 
+      <agentViewerModal.Provider>
+        {fullAgent && <AgentViewerModal agent={fullAgent} />}
+      </agentViewerModal.Provider>
+
       <Interactive.Base
-        onClick={handleStartChat}
+        onClick={() => agentViewerModal.toggle(true)}
         group="group/AgentCard"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         variant="none"
       >
         <Card padding={0} gap={0} height="full">
@@ -143,7 +146,6 @@ export default function AgentCard({ agent }: AgentCardProps) {
                     tertiary
                     onClick={noProp(() => togglePinnedAgent(agent, !pinned))}
                     tooltip={pinned ? "Unpin from Sidebar" : "Pin to Sidebar"}
-                    transient={hovered && pinned}
                     className={cn(
                       !pinned && "hidden group-hover/AgentCard:flex"
                     )}

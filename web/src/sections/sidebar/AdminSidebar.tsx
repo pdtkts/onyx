@@ -23,7 +23,7 @@ import {
   SlackIconSkeleton,
   BrainIcon,
 } from "@/components/icons/icons";
-import { CombinedSettings } from "@/app/admin/settings/interfaces";
+import { CombinedSettings } from "@/interfaces/settings";
 import SidebarTab from "@/refresh-components/buttons/SidebarTab";
 import SidebarBody from "@/sections/sidebar/SidebarBody";
 import {
@@ -31,6 +31,7 @@ import {
   SvgActivity,
   SvgArrowUpCircle,
   SvgBarChart,
+  SvgBubbleText,
   SvgCpu,
   SvgFileText,
   SvgFolder,
@@ -38,11 +39,9 @@ import {
   SvgArrowExchange,
   SvgImage,
   SvgKey,
-  SvgOnyxLogo,
   SvgOnyxOctagon,
   SvgSearch,
   SvgServer,
-  SvgSettings,
   SvgShield,
   SvgThumbsUp,
   SvgUploadCloud,
@@ -190,9 +189,9 @@ const collections = (
             name: "Configuration",
             items: [
               {
-                name: "Default Assistant",
-                icon: SvgOnyxLogo,
-                link: "/admin/configuration/default-assistant",
+                name: "Chat Preferences",
+                icon: SvgBubbleText,
+                link: "/admin/configuration/chat-preferences",
               },
               {
                 name: "LLM",
