@@ -51,6 +51,7 @@ import {
   SvgPaintBrush,
   SvgDiscordMono,
   SvgWallet,
+  SvgSettings,
 } from "@opal/icons";
 import SvgMcp from "@opal/icons/mcp";
 import UserAvatarPopover from "@/sections/sidebar/UserAvatarPopover";
