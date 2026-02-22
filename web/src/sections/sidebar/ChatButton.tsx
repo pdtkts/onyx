@@ -4,6 +4,7 @@ import React, { useState, memo, useMemo, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import useChatSessions from "@/hooks/useChatSessions";
 import { deleteChatSession, renameChatSession } from "@/app/app/services/lib";
+import { useChatSessionStore } from "@/app/app/stores/useChatSessionStore";
 import { ChatSession } from "@/app/app/interfaces";
 import ConfirmationModalLayout from "@/refresh-components/layouts/ConfirmationModalLayout";
 import Button from "@/refresh-components/buttons/Button";
@@ -107,6 +108,9 @@ const ChatButton = memo(
     const route = useAppRouter();
     const router = useRouter();
     const activeSidebarTab = useAppFocus();
+    const setCurrentSession = useChatSessionStore(
+      (state) => state.setCurrentSession
+    );
     const active = useMemo(
       () =>
         activeSidebarTab.isChat() &&
@@ -314,7 +318,9 @@ const ChatButton = memo(
             route({ projectId: project.id });
           }
         } else if (active) {
-          // Redirect to new chat when deleting the currently active non-project chat
+          // Clear zustand session immediately to prevent stale chat content display
+          // (router.replace is async and refreshChatSessions re-renders before URL updates)
+          setCurrentSession(null);
           router.replace("/app");
         }
         await refreshChatSessions();

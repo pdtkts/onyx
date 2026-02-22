@@ -12,6 +12,7 @@ import { FiMoreHorizontal } from "react-icons/fi";
 import useChatSessions from "@/hooks/useChatSessions";
 import useAppFocus from "@/hooks/useAppFocus";
 import { useRouter } from "next/navigation";
+import { useChatSessionStore } from "@/app/app/stores/useChatSessionStore";
 import { useCallback, useState, useMemo } from "react";
 import MoveCustomAgentChatModal from "@/components/modals/MoveCustomAgentChatModal";
 // PopoverMenu already imported above
@@ -58,6 +59,9 @@ export function ChatSessionMorePopup({
   const { fetchProjects, projects } = useProjectsContext();
   const activeSidebarTab = useAppFocus();
   const router = useRouter();
+  const setCurrentSession = useChatSessionStore(
+    (state) => state.setCurrentSession
+  );
   const isActiveChat =
     activeSidebarTab.isChat() &&
     activeSidebarTab.getId() === chatSession.id;
@@ -91,14 +95,16 @@ export function ChatSessionMorePopup({
       setIsDeleteModalOpen(false);
       setPopoverOpen(false);
 
-      // Redirect to new chat when deleting the currently active chat
+      // Clear zustand session immediately to prevent stale chat content display
+      // (router.replace is async and refreshChatSessions re-renders before URL updates)
       if (isActiveChat) {
+        setCurrentSession(null);
         router.replace("/app");
       }
 
       afterDelete?.();
     },
-    [chatSession, refreshChatSessions, fetchProjects, afterDelete, isActiveChat, router]
+    [chatSession, refreshChatSessions, fetchProjects, afterDelete, isActiveChat, router, setCurrentSession]
   );
 
   const performMove = useCallback(

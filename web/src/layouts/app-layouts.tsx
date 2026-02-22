@@ -40,6 +40,7 @@ import {
 import { LOCAL_STORAGE_KEYS } from "@/sections/sidebar/constants";
 import { deleteChatSession } from "@/app/app/services/lib";
 import { useRouter } from "next/navigation";
+import { useChatSessionStore } from "@/app/app/stores/useChatSessionStore";
 import MoveCustomAgentChatModal from "@/components/modals/MoveCustomAgentChatModal";
 import ConfirmationModalLayout from "@/refresh-components/layouts/ConfirmationModalLayout";
 import FrostedDiv from "@/refresh-components/FrostedDiv";
@@ -109,6 +110,9 @@ function Header() {
   const { currentChatSession, refreshChatSessions } = useChatSessions();
   const router = useRouter();
   const appFocus = useAppFocus();
+  const setCurrentSession = useChatSessionStore(
+    (state) => state.setCurrentSession
+  );
   const { classification } = useQueryController();
 
   const customHeaderContent =
@@ -184,6 +188,8 @@ function Header() {
       if (!response.ok) {
         throw new Error("Failed to delete chat session");
       }
+      // Clear zustand session immediately to prevent stale chat content display
+      setCurrentSession(null);
       await Promise.all([refreshChatSessions(), fetchProjects()]);
       router.replace("/app");
       setDeleteModalOpen(false);
@@ -191,7 +197,7 @@ function Header() {
       console.error("Failed to delete chat:", error);
       showErrorNotification("Failed to delete chat. Please try again.");
     }
-  }, [currentChatSession, refreshChatSessions, fetchProjects, router]);
+  }, [currentChatSession, refreshChatSessions, fetchProjects, router, setCurrentSession]);
 
   const setDeleteConfirmationModalOpen = useCallback((open: boolean) => {
     setDeleteModalOpen(open);
